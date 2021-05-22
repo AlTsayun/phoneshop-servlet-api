@@ -28,7 +28,7 @@ public class ArrayListProductDao implements ProductDao {
         this.lock = new ReentrantReadWriteLock();
     }
 
-    private static List<Product> getSampleProducts() {
+    public static List<Product> getSampleProducts() {
         List<Product> result = new ArrayList<>();
         Currency usd = Currency.getInstance("USD");
         result.add(new Product(1L, "sgs", "Samsung Galaxy S", new BigDecimal(100), usd, 100, "https://raw.githubusercontent.com/andrewosipenko/phoneshop-ext-images/master/manufacturer/Samsung/Samsung%20Galaxy%20S.jpg"));
@@ -78,11 +78,23 @@ public class ArrayListProductDao implements ProductDao {
     }
 
     @Override
+    public List<Product> getAll() {
+        List<Product> result;
+        lock.readLock().lock();
+        try {
+            result = new ArrayList<>(products);
+        } finally {
+            lock.readLock().unlock();
+        }
+        return result;
+    }
+
+    @Override
     public void update(@NotNull Product product) {
         lock.writeLock().lock();
         try {
             int foundIndex = IntStream.range(0, products.size())
-                    .filter(i ->product.getId().equals(products.get(i).getId()))
+                    .filter(i -> product.getId().equals(products.get(i).getId()))
                     .findFirst().orElseThrow(ProductPresistenceException::new);
             products.set(foundIndex, product);
         } finally {

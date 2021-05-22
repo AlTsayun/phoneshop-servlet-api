@@ -8,6 +8,7 @@ import java.util.List;
 public interface ProductDao {
     Product getByIdOrNull(@NotNull Long id);
     List<Product> getAllAvailable();
+    List<Product> getAll();
     void update(@NotNull Product product);
     void create(@NotNull Product product);
     void delete(@NotNull Long id);

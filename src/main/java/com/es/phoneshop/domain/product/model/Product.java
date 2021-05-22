@@ -12,6 +12,7 @@ public class Product {
     /** can be null if the price is null */
     private Currency currency;
     private int stock;
+    /** can be null if no image is provided */
     private String imageUrl;
 
     public Product() {
