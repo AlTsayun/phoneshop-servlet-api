@@ -47,7 +47,7 @@ public class ArrayListProductDaoTest {
     }
 
     @Test
-    public void testGetAllAvailable(){
+    public void testGetAllAvailable() {
         int actualSize = productDao.getAll().size();
         int availableSize = productDao.getAllAvailable().size();
         assertEquals(actualSize - 1, availableSize);
@@ -91,7 +91,7 @@ public class ArrayListProductDaoTest {
             threads[i].start();
         }
 
-        for (Thread thread : threads){
+        for (Thread thread : threads) {
             thread.join();
         }
 
@@ -114,7 +114,7 @@ public class ArrayListProductDaoTest {
             threads[i].start();
         }
 
-        for (Thread thread : threads){
+        for (Thread thread : threads) {
             thread.join();
         }
 
