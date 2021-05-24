@@ -91,29 +91,22 @@ public class ArrayListProductDao implements ProductDao {
     }
 
     @Override
-    public void update(@NotNull Product product) {
+    public Long save(@NotNull Product product) {
         lock.writeLock().lock();
         try {
-            int foundIndex = IntStream.range(0, products.size())
-                    .filter(i -> product.getId().equals(products.get(i).getId()))
-                    .findFirst().orElseThrow(ProductPresistenceException::new);
-            products.set(foundIndex, product);
+            if (product.getId() != null){
+                int insertingPosition = IntStream.range(0, products.size())
+                        .filter(i -> product.getId().equals(products.get(i).getId()))
+                        .findFirst().orElseThrow(ProductPresistenceException::new);
+                products.set(insertingPosition, product);
+            } else {
+                product.setId(idGenerator.getId());
+                products.add(product);
+            }
         } finally {
             lock.writeLock().unlock();
         }
-    }
-
-    @Override
-    public Long create(@NotNull Product product) {
-        Long id = idGenerator.getId();
-        product.setId(id);
-        lock.writeLock().lock();
-        try {
-            products.add(product);
-        } finally {
-            lock.writeLock().unlock();
-        }
-        return id;
+        return product.getId();
     }
 
     @Override

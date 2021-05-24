@@ -41,7 +41,7 @@ public class ArrayListProductDaoTest {
     public void testUpdateProduct() {
         Long id = 1L;
         Product toUpdate = new Product(id, "code", "description", new BigDecimal(100), Currency.getInstance("USD"), 10, "");
-        productDao.update(toUpdate);
+        productDao.save(toUpdate);
         Product updated = productDao.getById(id).get();
         assertEquals(toUpdate, updated);
     }
@@ -70,12 +70,12 @@ public class ArrayListProductDaoTest {
     public void testUpdateProductWrongId() {
         Long id = 0L;
         Product toUpdate = new Product(id, "code", "description", new BigDecimal(100), Currency.getInstance("USD"), 10, "");
-        productDao.update(toUpdate);
+        productDao.save(toUpdate);
     }
 
     @Test
     public void testCreateProduct() {
-        Long id = productDao.create(new Product(null, "code", "description", new BigDecimal(100), Currency.getInstance("USD"), 10, ""));
+        Long id = productDao.save(new Product(null, "code", "description", new BigDecimal(100), Currency.getInstance("USD"), 10, ""));
         assertTrue(productDao.getById(id).isPresent());
     }
 
@@ -86,9 +86,7 @@ public class ArrayListProductDaoTest {
         Thread[] threads = new Thread[threadsCount];
 
         for (int i = 0; i < threads.length; i++) {
-            threads[i] = new Thread(() -> {
-                productDao.create(new Product(null, "code", "description", new BigDecimal(100), Currency.getInstance("USD"), 10, null));
-            });
+            threads[i] = new Thread(() -> productDao.save(new Product(null, "code", "description", new BigDecimal(100), Currency.getInstance("USD"), 10, null)));
             threads[i].start();
         }
 
@@ -109,9 +107,7 @@ public class ArrayListProductDaoTest {
 
         for (int i = 0; i < threads.length; i++) {
             int finalI = i;
-            threads[i] = new Thread(() -> {
-                productDao.delete(finalI + 1L);
-            });
+            threads[i] = new Thread(() -> productDao.delete(finalI + 1L));
             threads[i].start();
         }
 
