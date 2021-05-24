@@ -64,6 +64,12 @@ public class ArrayListProductDaoTest {
     }
 
     @Test(expected = ProductPresistenceException.class)
+    public void testDeleteProductWrongId() {
+        Long id = 0L;
+        productDao.delete(id);
+    }
+
+    @Test(expected = ProductPresistenceException.class)
     public void testUpdateProductWrongId() {
         Long id = 0L;
         Product toUpdate = new Product(id, "code", "description", new BigDecimal(100), Currency.getInstance("USD"), 10, "");
