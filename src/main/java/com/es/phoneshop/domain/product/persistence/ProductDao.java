@@ -15,7 +15,7 @@ public interface ProductDao {
 
     void update(@NotNull Product product);
 
-    void create(@NotNull Product product);
+    Long create(@NotNull Product product);
 
     void delete(@NotNull Long id);
 }

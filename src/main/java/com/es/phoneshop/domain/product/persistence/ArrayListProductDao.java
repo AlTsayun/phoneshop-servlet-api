@@ -104,14 +104,16 @@ public class ArrayListProductDao implements ProductDao {
     }
 
     @Override
-    public void create(@NotNull Product product) {
-        product.setId(idGenerator.getId());
+    public Long create(@NotNull Product product) {
+        Long id = idGenerator.getId();
+        product.setId(id);
         lock.writeLock().lock();
         try {
             products.add(product);
         } finally {
             lock.writeLock().unlock();
         }
+        return id;
     }
 
     @Override

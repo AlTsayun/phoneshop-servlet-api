@@ -53,14 +53,11 @@ public class ArrayListProductDaoTest {
         assertEquals(actualSize - 1, availableSize);
     }
 
-
     @Test
     public void testDeleteProduct() {
         Long id = 1L;
-        int initialSize = productDao.getAll().size();
         productDao.delete(id);
-        int resultSize = productDao.getAll().size();
-        assertEquals(initialSize - 1, resultSize);
+        assertFalse(productDao.getById(id).isPresent());
     }
 
     @Test(expected = ProductPresistenceException.class)
@@ -78,10 +75,8 @@ public class ArrayListProductDaoTest {
 
     @Test
     public void testCreateProduct() {
-        int initialSize = productDao.getAll().size();
-        productDao.create(new Product(null, "code", "description", new BigDecimal(100), Currency.getInstance("USD"), 10, ""));
-        int resultSize = productDao.getAll().size();
-        assertEquals(initialSize + 1, resultSize);
+        Long id = productDao.create(new Product(null, "code", "description", new BigDecimal(100), Currency.getInstance("USD"), 10, ""));
+        assertTrue(productDao.getById(id).isPresent());
     }
 
     @Test
