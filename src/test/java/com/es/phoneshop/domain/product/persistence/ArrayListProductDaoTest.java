@@ -28,13 +28,13 @@ public class ArrayListProductDaoTest {
     @Test
     public void testGetProductById() {
         Long id = 1L;
-        assertNotNull(productDao.getByIdOrNull(id));
+        assertTrue(productDao.getById(id).isPresent());
     }
 
     @Test
     public void testGetProductByWrongIdNoResult() {
         Long id = 50L;
-        assertNull(productDao.getByIdOrNull(id));
+        assertFalse(productDao.getById(id).isPresent());
     }
 
     @Test
@@ -42,7 +42,7 @@ public class ArrayListProductDaoTest {
         Long id = 1L;
         Product toUpdate = new Product(id, "code", "description", new BigDecimal(100), Currency.getInstance("USD"), 10, "");
         productDao.update(toUpdate);
-        Product updated = productDao.getByIdOrNull(id);
+        Product updated = productDao.getById(id).get();
         assertEquals(toUpdate, updated);
     }
 
