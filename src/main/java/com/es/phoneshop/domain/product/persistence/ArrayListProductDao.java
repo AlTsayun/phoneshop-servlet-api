@@ -9,6 +9,7 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Currency;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.stream.Collectors;
@@ -49,13 +50,13 @@ public class ArrayListProductDao implements ProductDao {
     }
 
     @Override
-    public @Nullable Product getByIdOrNull(@NotNull Long id) {
-        Product result;
+    public Optional<Product> getById(@NotNull Long id) {
+        Optional<Product> result;
         lock.readLock().lock();
         try {
             result = products.stream()
                     .filter(it -> id.equals(it.getId()))
-                    .findFirst().orElse(null);
+                    .findFirst();
         } finally {
             lock.readLock().unlock();
         }

@@ -4,9 +4,10 @@ import com.es.phoneshop.domain.product.model.Product;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface ProductDao {
-    Product getByIdOrNull(@NotNull Long id);
+    Optional<Product> getById(@NotNull Long id);
 
     List<Product> getAllAvailable();
 
