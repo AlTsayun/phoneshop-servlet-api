@@ -31,7 +31,8 @@
                 ${product.code}
             </td>
             <td class="price">
-                <fmt:formatNumber value="${product.price}" type="currency" currencySymbol="${product.currency.symbol}"/>
+                <c:set var="price" value="${product.getActualPrice()}" scope="application" />
+                <fmt:formatNumber value="${price.value}" type="currency" currencySymbol="${price.currency.symbol}"/>
             </td>
             <td class="stock">
                 <fmt:formatNumber value="${product.stock}" type="number"/>

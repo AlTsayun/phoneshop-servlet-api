@@ -1,15 +1,18 @@
 package com.es.phoneshop.web;
 
+import com.es.phoneshop.domain.product.model.Product;
+import com.es.phoneshop.domain.product.model.ProductPrice;
+import com.es.phoneshop.domain.product.persistence.ArrayListProductDao;
 import com.es.phoneshop.domain.product.persistence.ProductDao;
 import com.es.phoneshop.infra.config.Configuration;
 import com.es.phoneshop.infra.config.ConfigurationImpl;
-import com.es.phoneshop.web.contextListeners.SampleDataServletContextListener;
-import junit.framework.TestCase;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
+import org.mockito.MockedStatic;
 import org.mockito.junit.MockitoJUnitRunner;
 
 import javax.servlet.RequestDispatcher;
@@ -19,10 +22,15 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import java.io.IOException;
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.time.Month;
+import java.util.Currency;
+import java.util.List;
+import java.util.Optional;
 
 import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @RunWith(MockitoJUnitRunner.class)
 public class ProductPricesHistoryServletTest{
@@ -36,19 +44,30 @@ public class ProductPricesHistoryServletTest{
     @Mock
     private ServletConfig config;
 
-    private final ProductPricesHistoryServlet servlet = new ProductPricesHistoryServlet();
+    private MockedStatic<ConfigurationImpl> configurationStatic;
 
-    @BeforeClass
-    public static void setupAll() {
-        Configuration configuration = ConfigurationImpl.getInstance();
-        ProductDao productDao = configuration.getProductDao();
-        SampleDataServletContextListener.getSampleProducts().forEach(productDao::save);
-    }
+    private final ProductPricesHistoryServlet servlet = new ProductPricesHistoryServlet();
 
     @Before
     public void setup() throws ServletException {
+        ProductDao productDao = mock(ProductDao.class);
+        when(productDao.getById(any())).thenReturn(Optional.of(new Product(0L, "code", "descrition", 1, null,
+                List.of(new ProductPrice(LocalDateTime.of(2000, Month.JANUARY, 1, 0, 0), new BigDecimal(100),
+                        Currency.getInstance("USD"))))));
+
+        Configuration configuration = mock(ConfigurationImpl.class);
+        when(configuration.getProductDao()).thenReturn(productDao);
+
+        configurationStatic = mockStatic(ConfigurationImpl.class);
+        configurationStatic.when(ConfigurationImpl::getInstance).thenReturn(configuration);
+
         servlet.init(config);
         when(request.getRequestDispatcher(anyString())).thenReturn(requestDispatcher);
+    }
+
+    @After
+    public void cleanUp() {
+        configurationStatic.close();
     }
 
     @Test
@@ -57,7 +76,6 @@ public class ProductPricesHistoryServletTest{
         servlet.doGet(request, response);
         verify(requestDispatcher).forward(request, response);
         verify(request).setAttribute(eq("product"), any());
-        verify(request).setAttribute(eq("prices"), any());
     }
     @Test
     public void testDoGetWrongProductId() throws ServletException, IOException {

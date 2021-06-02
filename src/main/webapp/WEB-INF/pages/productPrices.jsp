@@ -3,7 +3,6 @@
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 <%@ taglib prefix="tags" tagdir="/WEB-INF/tags" %>
 
-<jsp:useBean id="prices" type="java.util.ArrayList" scope="request"/>
 <jsp:useBean id="product" type="com.es.phoneshop.domain.product.model.Product" scope="request"/>
 
 <tags:master pageTitle="Product prices history">
@@ -17,7 +16,7 @@
             </td>
         </tr>
         </thead>
-        <c:forEach var="price" items="${prices}">
+        <c:forEach var="price" items="${product.pricesHistory}">
             <tr>
                 <td>
                     <fmt:parseDate value="${price.from}" pattern="yyyy-MM-dd" var="priceFrom" type="date"/>

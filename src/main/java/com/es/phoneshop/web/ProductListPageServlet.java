@@ -3,7 +3,7 @@ package com.es.phoneshop.web;
 import com.es.phoneshop.domain.common.model.SortingOrder;
 import com.es.phoneshop.infra.config.Configuration;
 import com.es.phoneshop.infra.config.ConfigurationImpl;
-import com.es.phoneshop.domain.product.model.ProductRequest;
+import com.es.phoneshop.domain.product.model.ProductsRequest;
 import com.es.phoneshop.domain.product.model.ProductSortingCriteria;
 import com.es.phoneshop.domain.product.persistence.ProductDao;
 
@@ -33,7 +33,7 @@ public class ProductListPageServlet extends HttpServlet {
         ProductSortingCriteria sortingCriteria = ProductSortingCriteria.fromString(request.getParameter("sortingCriteria"));
         SortingOrder sortingOrder = SortingOrder.fromString(request.getParameter("sortingOrder"));
 
-        request.setAttribute("products", productDao.getAllByRequest(new ProductRequest(query, sortingCriteria, sortingOrder, 1)));
+        request.setAttribute("products", productDao.getAllByRequest(new ProductsRequest(query, sortingCriteria, sortingOrder, 1)));
         request.getRequestDispatcher("/WEB-INF/pages/productList.jsp").forward(request, response);
     }
 }

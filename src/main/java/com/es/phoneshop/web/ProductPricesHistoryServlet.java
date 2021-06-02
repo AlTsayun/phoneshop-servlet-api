@@ -1,5 +1,6 @@
 package com.es.phoneshop.web;
 
+import com.es.phoneshop.domain.product.model.Product;
 import com.es.phoneshop.domain.product.persistence.ProductDao;
 import com.es.phoneshop.infra.config.Configuration;
 import com.es.phoneshop.infra.config.ConfigurationImpl;
@@ -30,8 +31,9 @@ public class ProductPricesHistoryServlet extends HttpServlet {
         String productIdStr = request.getPathInfo().substring(1);
         try {
             Long id = Long.valueOf(productIdStr);
-            request.setAttribute("product", productDao.getById(id).get());
-            request.setAttribute("prices", productDao.getPricesHistoryByProductId(id));
+            Product product = productDao.getById(id).get();
+            request.setAttribute("product", product);
+            request.setAttribute("prices", product.getPricesHistory());
 
             request.getRequestDispatcher("/WEB-INF/pages/productPrices.jsp").forward(request, response);
         } catch (NumberFormatException | NoSuchElementException e){

@@ -1,17 +1,16 @@
 package com.es.phoneshop.domain.product.persistence;
 
+import com.es.phoneshop.domain.common.model.SortingOrder;
 import com.es.phoneshop.domain.product.model.Product;
-import com.es.phoneshop.domain.product.model.ProductRequest;
+import com.es.phoneshop.domain.product.model.ProductPrice;
+import com.es.phoneshop.domain.product.model.ProductSortingCriteria;
+import com.es.phoneshop.domain.product.model.ProductsRequest;
 import com.es.phoneshop.utils.LongIdGeneratorImpl;
-import com.es.phoneshop.web.contextListeners.SampleDataServletContextListener;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 
 import java.math.BigDecimal;
-import java.time.Clock;
-import java.time.Instant;
-import java.time.ZoneId;
+import java.time.*;
 import java.util.Currency;
 import java.util.List;
 
@@ -20,13 +19,9 @@ import static org.junit.Assert.*;
 
 public class ArrayListProductDaoTest {
 
-    private static ProductDao productDao;
-    private static List<Product> sampleProducts;
+    private ProductDao productDao;
 
-    @BeforeClass
-    public static void setupAll() {
-        sampleProducts = SampleDataServletContextListener.getSampleProducts();
-    }
+    private List<Product> initialProducts;
 
     @Before
     public void setup() {
@@ -37,22 +32,8 @@ public class ArrayListProductDaoTest {
                         ZoneId.of("Europe/London")
                 )
         );
-        sampleProducts.forEach(it -> productDao.save(
-                new Product(
-                        it.getId(),
-                        it.getCode(),
-                        it.getDescription(),
-                        it.getPrice(),
-                        it.getCurrency(),
-                        it.getStock(),
-                        it.getImageUrl())
-                )
-        );
-    }
-
-    @Test
-    public void testGetAllByRequest() {
-        assertFalse(productDao.getAllByRequest(new ProductRequest(null, null, null, 1)).isEmpty());
+        ArrayListProductDao.getSampleProducts().forEach(it -> productDao.save(it));
+        initialProducts = productDao.getAll();
     }
 
     @Test
@@ -70,24 +51,48 @@ public class ArrayListProductDaoTest {
     @Test
     public void testUpdateProduct() {
         Long id = 1L;
-        Product toUpdate = new Product(id, "code", "description", new BigDecimal(100), Currency.getInstance("USD"), 10, "");
+        Product toUpdate = new Product(id, "code", "description", 10, "",
+                List.of(new ProductPrice(LocalDateTime.of(2001, Month.JANUARY, 1, 0, 0),
+                        new BigDecimal(500),
+                        Currency.getInstance("USD"))));
+
         productDao.save(toUpdate);
         Product updated = productDao.getById(id).get();
         assertEquals(toUpdate, updated);
-        assertEquals(2L, productDao.getPricesHistoryByProductId(id).size());
     }
 
     @Test
-    public void testGetAllWithRequest() {
-        int actualSize = productDao.getAll().size();
-        int resultSize = productDao.getAllByRequest(new ProductRequest(null, null, null, 1)).size();
-        assertEquals(actualSize - 1, resultSize);
-    }
+    public void testGetAllByRequest() {
+        List<Product> products = productDao.getAllByRequest(new ProductsRequest("Samsung III", null, null, 1));
+        assertEquals(2, products.size());
+        assertEquals(products.get(0), initialProducts.get(2));
+        assertEquals(products.get(1), initialProducts.get(0));
 
-    @Test
-    public void testGetAllWithSearchQuery() {
-        int productsSize = productDao.getAllByRequest(new ProductRequest("Samsung", null, null, 1)).size();
-        assertEquals(2, productsSize);
+        products = productDao.getAllByRequest(new ProductsRequest(null, ProductSortingCriteria.PRICE, SortingOrder.ASC, 1));
+        assertEquals(12, products.size());
+        assertEquals(products.get(0), initialProducts.get(8));
+        assertEquals(products.get(1), initialProducts.get(9));
+        assertEquals(products.get(2), initialProducts.get(10));
+        assertEquals(products.get(3), initialProducts.get(11));
+        assertEquals(products.get(4), initialProducts.get(7));
+        assertEquals(products.get(5), initialProducts.get(12));
+        assertEquals(products.get(6), initialProducts.get(0));
+        assertEquals(products.get(7), initialProducts.get(3));
+        assertEquals(products.get(8), initialProducts.get(2));
+        assertEquals(products.get(9), initialProducts.get(5));
+        assertEquals(products.get(10), initialProducts.get(6));
+        assertEquals(products.get(11), initialProducts.get(4));
+
+
+        products = productDao.getAllByRequest(new ProductsRequest(
+                "Samsung III",
+                ProductSortingCriteria.DESCRIPTION,
+                SortingOrder.ASC,
+                1));
+        assertEquals(2, products.size());
+        assertEquals(products.get(0), initialProducts.get(0));
+        assertEquals(products.get(1), initialProducts.get(2));
+
     }
 
     @Test
@@ -95,7 +100,6 @@ public class ArrayListProductDaoTest {
         Long id = 1L;
         productDao.delete(id);
         assertFalse(productDao.getById(id).isPresent());
-        assertEquals(0, productDao.getPricesHistoryByProductId(id).size());
     }
 
     @Test(expected = ProductPresistenceException.class)
@@ -107,15 +111,23 @@ public class ArrayListProductDaoTest {
     @Test(expected = ProductPresistenceException.class)
     public void testUpdateProductWrongId() {
         Long id = 500L;
-        Product toUpdate = new Product(id, "code", "description", new BigDecimal(100), Currency.getInstance("USD"), 10, "");
+        Product toUpdate = new Product(id, "code", "description", 10, "",
+                List.of(new ProductPrice(LocalDateTime.of(2001, Month.JANUARY, 1, 0, 0),
+                        new BigDecimal(200),
+                        Currency.getInstance("USD"))));
         productDao.save(toUpdate);
     }
 
     @Test
     public void testCreateProduct() {
-        Long id = productDao.save(new Product(null, "code", "description", new BigDecimal(100), Currency.getInstance("USD"), 10, ""));
+        Product productToCreate = new Product(null, "code", "description", 10, "",
+                List.of(new ProductPrice(LocalDateTime.of(2001, Month.JANUARY, 1, 0, 0),
+                        new BigDecimal(200),
+                        Currency.getInstance("USD"))));
+        Long id = productDao.save(productToCreate);
+        productToCreate.setId(id);
         assertTrue(productDao.getById(id).isPresent());
-        assertEquals(1, productDao.getPricesHistoryByProductId(id).size());
+        assertEquals(productToCreate, productDao.getById(id).get());
     }
 
     @Test
@@ -125,10 +137,11 @@ public class ArrayListProductDaoTest {
         Thread[] threads = new Thread[threadsCount];
 
         for (int i = 0; i < threads.length; i++) {
-            threads[i] = new Thread(() -> {
-                Long id = productDao.save(new Product(null, "code", "description", new BigDecimal(100), Currency.getInstance("USD"), 10, null));
-                assertEquals(1, productDao.getPricesHistoryByProductId(id).size());
-            });
+            threads[i] = new Thread(() ->
+                    productDao.save(new Product(null, "code", "description", 10, null,
+                            List.of(new ProductPrice(LocalDateTime.of(2001, Month.JANUARY, 1, 0, 0),
+                                    new BigDecimal(200),
+                                    Currency.getInstance("USD"))))));
             threads[i].start();
         }
 
@@ -156,36 +169,8 @@ public class ArrayListProductDaoTest {
         for (Thread thread : threads) {
             thread.join();
         }
-        for (long i = 0; i < threads.length; i++) {
-            assertEquals(0, productDao.getPricesHistoryByProductId(i).size());
-        }
 
         int resultSize = productDao.getAll().size();
         assertEquals(initialSize - threadsCount, resultSize);
     }
-
-    @Test
-    public void testGetPricesHistoryByProductId(){
-        Long productId = 0L;
-        assertEquals(1, productDao.getPricesHistoryByProductId(productId).size());
-
-        productDao.save(new Product(productId, "code", "description", new BigDecimal(1000), Currency.getInstance("USD"), 12, null));
-        assertEquals(2, productDao.getPricesHistoryByProductId(productId).size());
-
-        productDao.save(new Product(productId, "code", "description", new BigDecimal(1000), Currency.getInstance("INR"), 12, null));
-        assertEquals(3, productDao.getPricesHistoryByProductId(productId).size());
-
-        productDao.save(new Product(productId, "code", "description", new BigDecimal(100), Currency.getInstance("INR"), 12, null));
-        assertEquals(4, productDao.getPricesHistoryByProductId(productId).size());
-
-        productDao.save(new Product(productId, "code", "description", new BigDecimal(1000), Currency.getInstance("USD"), 12, null));
-        assertEquals(5, productDao.getPricesHistoryByProductId(productId).size());
-    }
-
-    @Test
-    public void testGetPricesHistoryByWrongProductId(){
-        Long productId = 500L;
-        assertEquals(0, productDao.getPricesHistoryByProductId(productId).size());
-    }
-
 }

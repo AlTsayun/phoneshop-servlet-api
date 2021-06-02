@@ -2,13 +2,13 @@ package com.es.phoneshop.domain.product.model;
 
 import com.es.phoneshop.domain.common.model.SortingOrder;
 
-public class ProductRequest {
+public class ProductsRequest {
     private String query;
     private ProductSortingCriteria sortingCriteria;
     private SortingOrder sortingOrder;
     private int minStockInclusive;
 
-    public ProductRequest(String query, ProductSortingCriteria sortingCriteria, SortingOrder sortingOrder, int minStockInclusive) {
+    public ProductsRequest(String query, ProductSortingCriteria sortingCriteria, SortingOrder sortingOrder, int minStockInclusive) {
         this.query = query;
         this.sortingCriteria = sortingCriteria;
         this.sortingOrder = sortingOrder;

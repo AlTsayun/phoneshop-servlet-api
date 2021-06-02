@@ -1,3 +1,4 @@
+<%@ page import="com.es.phoneshop.domain.product.model.ProductPrice" %>
 <%@ page contentType="text/html;charset=UTF-8" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
@@ -36,8 +37,9 @@
           </a>
         </td>
         <td class="price">
+          <c:set var="price" value="${product.getActualPrice()}" scope="application" />
           <a href="${pageContext.servletContext.contextPath}/product-prices-history/${product.id}">
-            <fmt:formatNumber value="${product.price}" type="currency" currencySymbol="${product.currency.symbol}"/>
+            <fmt:formatNumber value="${price.value}" type="currency" currencySymbol="${price.currency.symbol}"/>
           </a>
         </td>
       </tr>

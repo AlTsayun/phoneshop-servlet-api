@@ -5,24 +5,17 @@ import java.time.LocalDateTime;
 import java.util.Currency;
 
 public class ProductPrice {
-    private Long productId;
     private LocalDateTime from;
+
+    /** null means there is no price because the product is outdated or new */
     private BigDecimal value;
+    /** can be null if the price is null */
     private Currency currency;
 
-    public ProductPrice(Long productId, LocalDateTime from, BigDecimal value, Currency currency) {
-        this.productId = productId;
+    public ProductPrice(LocalDateTime from, BigDecimal value, Currency currency) {
         this.from = from;
         this.value = value;
         this.currency = currency;
-    }
-
-    public Long getProductId() {
-        return productId;
-    }
-
-    public void setProductId(Long productId) {
-        this.productId = productId;
     }
 
     public LocalDateTime getFrom() {

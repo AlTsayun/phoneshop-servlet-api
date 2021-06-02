@@ -1,17 +1,16 @@
 package com.es.phoneshop.infra.config;
 
-import junit.framework.TestCase;
-import org.junit.BeforeClass;
+import org.junit.Before;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
 
 public class ConfigurationImplTest{
 
-    private static Configuration configuration;
+    private Configuration configuration;
 
-    @BeforeClass
-    public static void setupAll(){
+    @Before
+    public void setup(){
         configuration = ConfigurationImpl.getInstance();
     }
 
@@ -23,6 +22,7 @@ public class ConfigurationImplTest{
     public void testGetProductDao(){
         assertEquals(configuration.getProductDao(), configuration.getProductDao());
     }
+
     @Test
     public void testGetLongIdGenerator(){
         assertEquals(configuration.getLongIdGenerator(), configuration.getLongIdGenerator());
