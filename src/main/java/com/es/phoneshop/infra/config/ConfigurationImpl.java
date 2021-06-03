@@ -6,6 +6,8 @@ import com.es.phoneshop.utils.LongIdGenerator;
 import com.es.phoneshop.utils.LongIdGeneratorImpl;
 
 import java.time.Clock;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 public class ConfigurationImpl implements Configuration {
 
@@ -15,28 +17,47 @@ public class ConfigurationImpl implements Configuration {
 
     private LongIdGenerator longIdGenerator;
 
+    private static final Lock instanceLock = new ReentrantLock();
+    private final Lock productDaoLock = new ReentrantLock();
+    private final Lock longIdGeneratorLock = new ReentrantLock();
+
     private ConfigurationImpl() { }
 
-    public static synchronized ConfigurationImpl getInstance() {
-        if (instance == null){
-            instance = new ConfigurationImpl();
+    public static ConfigurationImpl getInstance() {
+        instanceLock.lock();
+        try {
+            if (instance == null){
+                instance = new ConfigurationImpl();
+            }
+            return instance;
+        } finally {
+            instanceLock.unlock();
         }
-        return instance;
     }
 
     @Override
-    public synchronized ProductDao getProductDao() {
-        if (productDao == null){
-            productDao = new ArrayListProductDao(getLongIdGenerator(), Clock.systemUTC());
+    public ProductDao getProductDao() {
+        productDaoLock.lock();
+        try {
+            if (productDao == null){
+                productDao = new ArrayListProductDao(getLongIdGenerator(), Clock.systemUTC());
+            }
+            return productDao;
+        } finally {
+            productDaoLock.unlock();
         }
-        return productDao;
     }
 
     @Override
-    public synchronized LongIdGenerator getLongIdGenerator() {
-        if (longIdGenerator == null){
-            longIdGenerator = new LongIdGeneratorImpl(0L);
+    public LongIdGenerator getLongIdGenerator() {
+        longIdGeneratorLock.lock();
+        try {
+            if (longIdGenerator == null){
+                longIdGenerator = new LongIdGeneratorImpl(0L);
+            }
+            return longIdGenerator;
+        } finally {
+            longIdGeneratorLock.unlock();
         }
-        return longIdGenerator;
     }
 }
