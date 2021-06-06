@@ -2,10 +2,10 @@ package com.es.phoneshop.web;
 
 import com.es.phoneshop.domain.product.model.Product;
 import com.es.phoneshop.domain.product.model.ProductPrice;
-import com.es.phoneshop.domain.product.persistence.ArrayListProductDao;
 import com.es.phoneshop.domain.product.persistence.ProductDao;
 import com.es.phoneshop.infra.config.Configuration;
 import com.es.phoneshop.infra.config.ConfigurationImpl;
+import junit.framework.TestCase;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -21,8 +21,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
-import java.time.Month;
+import java.time.*;
 import java.util.Currency;
 import java.util.List;
 import java.util.Optional;
@@ -31,7 +30,8 @@ import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 @RunWith(MockitoJUnitRunner.class)
-public class ProductListPageServletTest {
+public class ProductDetailsPageServletTest extends TestCase {
+
     @Mock
     private HttpServletRequest request;
     @Mock
@@ -43,12 +43,13 @@ public class ProductListPageServletTest {
 
     private MockedStatic<ConfigurationImpl> configurationStatic;
 
-    private final ProductListPageServlet servlet = new ProductListPageServlet();
+    private final ProductDetailsPageServlet servlet = new ProductDetailsPageServlet();
 
     @Before
     public void setup() throws ServletException {
+
         ProductDao productDao = mock(ProductDao.class);
-        when(productDao.getAllByRequest(any())).thenReturn(List.of(new Product(0L, "code", "descrition", 1, null,
+        when(productDao.getById(any())).thenReturn(Optional.of(new Product(0L, "code", "descrition", 1, null,
                 List.of(new ProductPrice(LocalDateTime.of(2000, Month.JANUARY, 1, 0, 0), new BigDecimal(100),
                         Currency.getInstance("USD"))))));
 
@@ -69,8 +70,19 @@ public class ProductListPageServletTest {
 
     @Test
     public void testDoGet() throws ServletException, IOException {
+        when(request.getPathInfo()).thenReturn("/0");
         servlet.doGet(request, response);
         verify(requestDispatcher).forward(request, response);
-        verify(request).setAttribute(eq("products"), any());
+        verify(request).setAttribute(eq("product"), any());
     }
+
+    @Test
+    public void testDoGetWrongProductId() throws ServletException, IOException {
+        when(request.getPathInfo()).thenReturn("/asd");
+        servlet.doGet(request, response);
+        verify(requestDispatcher).forward(request, response);
+        verify(request).setAttribute(eq("productIdStr"), any());
+        verify(response).setStatus(404);
+    }
+
 }

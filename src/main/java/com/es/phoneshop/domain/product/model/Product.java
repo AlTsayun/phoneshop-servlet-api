@@ -1,31 +1,38 @@
 package com.es.phoneshop.domain.product.model;
 
 import java.math.BigDecimal;
+import java.util.Comparator;
 import java.util.Currency;
+import java.util.List;
 
 public class Product {
     private Long id;
     private String code;
     private String description;
-    /** null means there is no price because the product is outdated or new */
-    private BigDecimal price;
-    /** can be null if the price is null */
-    private Currency currency;
     private int stock;
     /** can be null if no image is provided */
     private String imageUrl;
 
+    private List<ProductPrice> pricesHistory;
+
     public Product() {
     }
 
-    public Product(Long id, String code, String description, BigDecimal price, Currency currency, int stock, String imageUrl) {
+    public Product(Long id, String code, String description, int stock, String imageUrl, List<ProductPrice> pricesHistory) {
         this.id = id;
         this.code = code;
         this.description = description;
-        this.price = price;
-        this.currency = currency;
         this.stock = stock;
         this.imageUrl = imageUrl;
+        this.pricesHistory = pricesHistory;
+    }
+
+    public List<ProductPrice> getPricesHistory() {
+        return pricesHistory;
+    }
+
+    public void setPricesHistory(List<ProductPrice> pricesHistory) {
+        this.pricesHistory = pricesHistory;
     }
 
     public Long getId() {
@@ -52,22 +59,6 @@ public class Product {
         this.description = description;
     }
 
-    public BigDecimal getPrice() {
-        return price;
-    }
-
-    public void setPrice(BigDecimal price) {
-        this.price = price;
-    }
-
-    public Currency getCurrency() {
-        return currency;
-    }
-
-    public void setCurrency(Currency currency) {
-        this.currency = currency;
-    }
-
     public int getStock() {
         return stock;
     }
@@ -83,4 +74,6 @@ public class Product {
     public void setImageUrl(String imageUrl) {
         this.imageUrl = imageUrl;
     }
+
+    public ProductPrice getActualPrice() {return pricesHistory.stream().max(Comparator.comparing(ProductPrice::getFrom)).get();}
 }
