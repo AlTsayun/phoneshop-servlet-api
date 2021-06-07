@@ -16,6 +16,7 @@ public class ServletInitServletContextListener implements ServletContextListener
         if (servletContext.getInitParameter("configuration").equals("default")) {
 
             Configuration configuration = ConfigurationImpl.getInstance();
+            //todo: inject ErrorHandler
             ErrorHandler errorHandler = new ErrorHandler();
 
             ServletRegistration.Dynamic productList = servletContext.addServlet(

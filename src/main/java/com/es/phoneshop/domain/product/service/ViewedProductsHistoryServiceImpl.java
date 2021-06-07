@@ -20,11 +20,6 @@ public class ViewedProductsHistoryServiceImpl implements ViewedProductsHistorySe
     }
 
     @Override
-    public void setHistorySize(int size) {
-        historySize = size;
-    }
-
-    @Override
     public void add(List<Long> viewedProductsIds, Long productId) {
         viewedProductsIds.stream()
                 .filter(productId::equals)

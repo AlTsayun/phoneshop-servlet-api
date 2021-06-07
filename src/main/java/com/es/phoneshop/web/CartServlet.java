@@ -2,18 +2,16 @@ package com.es.phoneshop.web;
 
 import com.es.phoneshop.domain.cart.model.Cart;
 import com.es.phoneshop.domain.cart.service.CartService;
+import com.es.phoneshop.domain.cart.service.ProductQuantityTooLowException;
 import com.es.phoneshop.domain.cart.service.ProductStockNotEnoughException;
 import com.es.phoneshop.domain.product.model.Product;
 import com.es.phoneshop.domain.product.persistence.ProductDao;
 import com.es.phoneshop.infra.config.Configuration;
-import com.es.phoneshop.infra.config.ConfigurationImpl;
 
-import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.swing.text.NumberFormatter;
 import java.io.IOException;
 import java.text.NumberFormat;
 import java.text.ParseException;
@@ -65,6 +63,14 @@ public class CartServlet extends HttpServlet {
 
         } catch (ProductStockNotEnoughException e){
             errorHandler.addingToCartError(request, response, "Stock is not enough.", product.getDescription(), returnPath);
+            return;
+        } catch (ProductQuantityTooLowException e){
+            errorHandler.addingToCartError(
+                    request,
+                    response,
+                    "Quantity " + quantity + " is too low.",
+                    product.getDescription(),
+                    returnPath);
             return;
         }
 

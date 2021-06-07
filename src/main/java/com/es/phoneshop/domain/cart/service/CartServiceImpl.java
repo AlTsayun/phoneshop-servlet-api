@@ -18,6 +18,11 @@ public class CartServiceImpl implements CartService {
 
     @Override
     public void add(Cart cart, Long productId, int quantity) {
+
+        if(quantity <= 0){
+            throw new ProductQuantityTooLowException();
+        }
+
         Optional<Product> productOptional = productDao.getById(productId);
         if (productOptional.isPresent()) {
             Product product = productOptional.get();
