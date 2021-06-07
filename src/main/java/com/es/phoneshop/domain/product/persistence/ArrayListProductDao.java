@@ -8,7 +8,6 @@ import com.es.phoneshop.domain.product.model.ProductSortingCriteria;
 import com.es.phoneshop.utils.LongIdGenerator;
 
 import java.math.BigDecimal;
-import java.time.Clock;
 import java.time.LocalDateTime;
 import java.time.Month;
 import java.util.*;
@@ -21,15 +20,12 @@ public class ArrayListProductDao implements ProductDao {
 
     private final List<Product> products;
 
-    private final Clock clock;
-
     private final LongIdGenerator idGenerator;
 
     private final ReadWriteLock lock;
 
-    public ArrayListProductDao(LongIdGenerator idGenerator, Clock clock) {
+    public ArrayListProductDao(LongIdGenerator idGenerator) {
         this.products = new ArrayList<>();
-        this.clock = clock;
         this.idGenerator = idGenerator;
         this.lock = new ReentrantReadWriteLock();
     }

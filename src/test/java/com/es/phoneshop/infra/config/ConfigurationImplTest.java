@@ -18,6 +18,7 @@ public class ConfigurationImplTest{
     public void testGetInstance(){
         assertEquals(configuration, ConfigurationImpl.getInstance());
     }
+
     @Test
     public void testGetProductDao(){
         assertEquals(configuration.getProductDao(), configuration.getProductDao());
@@ -28,4 +29,8 @@ public class ConfigurationImplTest{
         assertEquals(configuration.getLongIdGenerator(), configuration.getLongIdGenerator());
     }
 
+    @Test
+    public void testGetViewedProductsHistoryService() {
+        assertEquals(configuration.getViewedProductsHistoryService(), configuration.getViewedProductsHistoryService());
+    }
 }

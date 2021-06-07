@@ -10,13 +10,11 @@ import javax.servlet.ServletContextListener;
 
 public class SampleDataServletContextListener implements ServletContextListener {
 
-    private Configuration configuration;
-
     @Override
     public void contextInitialized(ServletContextEvent event) {
 
         if (Boolean.parseBoolean(event.getServletContext().getInitParameter("insertSampleData"))){
-            configuration = ConfigurationImpl.getInstance();
+            Configuration configuration = ConfigurationImpl.getInstance();
             ProductDao productDao = configuration.getProductDao();
             ArrayListProductDao.getSampleProducts().forEach(productDao::save);
         }
