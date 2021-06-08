@@ -6,6 +6,8 @@ import com.es.phoneshop.domain.cart.model.CartItem;
 import com.es.phoneshop.domain.product.model.Product;
 import com.es.phoneshop.domain.product.model.ProductPrice;
 import com.es.phoneshop.domain.product.persistence.ProductDao;
+import com.es.phoneshop.utils.sessionLock.SessionLockProvider;
+import com.es.phoneshop.utils.sessionLock.SessionLockWrapper;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -17,6 +19,7 @@ import java.util.ArrayList;
 import java.util.Currency;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.locks.Lock;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
@@ -34,7 +37,16 @@ public class CartServiceImplTest {
         testProducts = setupTestProducts();
         productDao = setupProductDao(testProducts);
         testCart = setupCart();
-        cartService = new CartServiceImpl(productDao);
+        cartService = new CartServiceImpl(productDao, setupSessionLockWrapper());
+    }
+
+    private SessionLockWrapper setupSessionLockWrapper(){
+        SessionLockWrapper sessionLockWrapper = mock(SessionLockWrapper.class);
+        SessionLockProvider sessionLockProvider = mock(SessionLockProvider.class);
+        Lock lock = mock(Lock.class);
+        when(sessionLockProvider.getLock(any())).thenReturn(lock);
+        when(sessionLockWrapper.getSessionLockProvider(any())).thenReturn(sessionLockProvider);
+        return sessionLockWrapper;
     }
 
     private ProductDao setupProductDao(List<Product> products) {

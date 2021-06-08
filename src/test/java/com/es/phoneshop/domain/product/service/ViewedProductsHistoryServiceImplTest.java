@@ -1,5 +1,7 @@
 package com.es.phoneshop.domain.product.service;
 
+import com.es.phoneshop.utils.sessionLock.SessionLockProvider;
+import com.es.phoneshop.utils.sessionLock.SessionLockWrapper;
 import junit.framework.TestCase;
 import org.junit.Before;
 import org.junit.Test;
@@ -8,6 +10,7 @@ import javax.servlet.http.HttpSession;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.locks.Lock;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -19,7 +22,17 @@ public class ViewedProductsHistoryServiceImplTest {
 
     @Before
     public void setup(){
-        service = new ViewedProductsHistoryServiceImpl(3);
+        service = new ViewedProductsHistoryServiceImpl(setupSessionLockWrapper(),3);
+    }
+
+
+    private SessionLockWrapper setupSessionLockWrapper(){
+        SessionLockWrapper sessionLockWrapper = mock(SessionLockWrapper.class);
+        SessionLockProvider sessionLockProvider = mock(SessionLockProvider.class);
+        Lock lock = mock(Lock.class);
+        when(sessionLockProvider.getLock(any())).thenReturn(lock);
+        when(sessionLockWrapper.getSessionLockProvider(any())).thenReturn(sessionLockProvider);
+        return sessionLockWrapper;
     }
 
     @Test

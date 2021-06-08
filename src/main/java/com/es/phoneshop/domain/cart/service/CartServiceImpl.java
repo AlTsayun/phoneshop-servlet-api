@@ -4,17 +4,20 @@ import com.es.phoneshop.domain.cart.model.Cart;
 import com.es.phoneshop.domain.cart.model.CartItem;
 import com.es.phoneshop.domain.product.model.Product;
 import com.es.phoneshop.domain.product.persistence.ProductDao;
+import com.es.phoneshop.utils.sessionLock.SessionLockProvider;
+import com.es.phoneshop.utils.sessionLock.SessionLockWrapper;
 
 import javax.servlet.http.HttpSession;
 import java.util.ArrayList;
-import java.util.List;
 import java.util.Optional;
-import java.util.stream.IntStream;
 
 public class CartServiceImpl implements CartService {
 
     public static final String CART_SESSION_ATTRIBUTE = CartServiceImpl.class.getName() + ".cart";
+    public static final String CART_SESSION_LOCK_ATTRIBUTE = CartServiceImpl.class.getName() + ".cart.lock";
+
     private final ProductDao productDao;
+    private final SessionLockProvider sessionLockProvider;
 
     @Override
     public void add(Cart cart, Long productId, int quantity) {
@@ -43,16 +46,22 @@ public class CartServiceImpl implements CartService {
         }
     }
 
-    public CartServiceImpl(ProductDao productDao) {
+    public CartServiceImpl(ProductDao productDao, SessionLockWrapper sessionLockWrapper) {
         this.productDao = productDao;
+        this.sessionLockProvider = sessionLockWrapper.getSessionLockProvider(CART_SESSION_LOCK_ATTRIBUTE);
     }
 
     @Override
     public Cart getCart(HttpSession session) {
-        Cart cart = (Cart) session.getAttribute(CART_SESSION_ATTRIBUTE);
-        if(cart == null){
-            session.setAttribute(CART_SESSION_ATTRIBUTE, cart = new Cart(new ArrayList<>()));
+        sessionLockProvider.getLock(session).lock();
+        try {
+            Cart cart = (Cart) session.getAttribute(CART_SESSION_ATTRIBUTE);
+            if (cart == null) {
+                session.setAttribute(CART_SESSION_ATTRIBUTE, cart = new Cart(new ArrayList<>()));
+            }
+            return cart;
+        } finally {
+            sessionLockProvider.getLock(session).unlock();
         }
-        return cart;
     }
 }

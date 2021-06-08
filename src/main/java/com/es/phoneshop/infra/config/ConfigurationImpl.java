@@ -8,8 +8,9 @@ import com.es.phoneshop.domain.product.service.ViewedProductsHistoryService;
 import com.es.phoneshop.domain.product.service.ViewedProductsHistoryServiceImpl;
 import com.es.phoneshop.utils.LongIdGenerator;
 import com.es.phoneshop.utils.LongIdGeneratorImpl;
+import com.es.phoneshop.utils.sessionLock.SessionLockWrapper;
+import com.es.phoneshop.utils.sessionLock.SessionLockWrapperImpl;
 
-import java.time.Clock;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -24,12 +25,14 @@ public class ConfigurationImpl implements Configuration {
     private CartService cartService;
 
     private ViewedProductsHistoryService viewedProductsHistoryService;
+    private SessionLockWrapper sessionLockWrapper;
 
     private static final Lock instanceLock = new ReentrantLock();
     private final Lock productDaoLock = new ReentrantLock();
     private final Lock longIdGeneratorLock = new ReentrantLock();
     private final Lock cartServiceLock = new ReentrantLock();
     private final Lock viewedProductsHistoryServiceLock = new ReentrantLock();
+    private final Lock sessionLockWrapperLock = new ReentrantLock();
 
     private ConfigurationImpl() { }
 
@@ -81,7 +84,7 @@ public class ConfigurationImpl implements Configuration {
             cartServiceLock.lock();
             try {
                 if (cartService == null) {
-                    cartService = new CartServiceImpl(getProductDao());
+                    cartService = new CartServiceImpl(getProductDao(), getSessionLockWrapper());
                 }
             } finally {
                 cartServiceLock.unlock();
@@ -95,12 +98,27 @@ public class ConfigurationImpl implements Configuration {
             viewedProductsHistoryServiceLock.lock();
             try {
                 if (viewedProductsHistoryService == null) {
-                    viewedProductsHistoryService = new ViewedProductsHistoryServiceImpl(3);
+                    viewedProductsHistoryService = new ViewedProductsHistoryServiceImpl(getSessionLockWrapper(), 3);
                 }
             } finally {
                 viewedProductsHistoryServiceLock.unlock();
             }
         }
         return viewedProductsHistoryService;
+    }
+
+    @Override
+    public SessionLockWrapper getSessionLockWrapper() {
+        if(sessionLockWrapper == null) {
+            sessionLockWrapperLock.lock();
+            try {
+                if (sessionLockWrapper == null) {
+                    sessionLockWrapper = new SessionLockWrapperImpl();
+                }
+            } finally {
+                sessionLockWrapperLock.unlock();
+            }
+        }
+        return sessionLockWrapper;
     }
 }
