@@ -16,30 +16,26 @@ import java.util.concurrent.locks.ReentrantLock;
 
 public class ConfigurationImpl implements Configuration {
 
-    private static ConfigurationImpl instance;
-
-    private ProductDao productDao;
-
-    private LongIdGenerator longIdGenerator;
-
-    private CartService cartService;
-
-    private ViewedProductsHistoryService viewedProductsHistoryService;
-    private SessionLockWrapper sessionLockWrapper;
-
     private static final Lock instanceLock = new ReentrantLock();
+    private static ConfigurationImpl instance;
     private final Lock productDaoLock = new ReentrantLock();
     private final Lock longIdGeneratorLock = new ReentrantLock();
     private final Lock cartServiceLock = new ReentrantLock();
     private final Lock viewedProductsHistoryServiceLock = new ReentrantLock();
     private final Lock sessionLockWrapperLock = new ReentrantLock();
+    private ProductDao productDao;
+    private LongIdGenerator longIdGenerator;
+    private CartService cartService;
+    private ViewedProductsHistoryService viewedProductsHistoryService;
+    private SessionLockWrapper sessionLockWrapper;
 
-    private ConfigurationImpl() { }
+    private ConfigurationImpl() {
+    }
 
     public static ConfigurationImpl getInstance() {
         instanceLock.lock();
         try {
-            if (instance == null){
+            if (instance == null) {
                 instance = new ConfigurationImpl();
             }
             return instance;
@@ -80,7 +76,7 @@ public class ConfigurationImpl implements Configuration {
 
     @Override
     public CartService getCartService() {
-        if(cartService == null) {
+        if (cartService == null) {
             cartServiceLock.lock();
             try {
                 if (cartService == null) {
@@ -92,13 +88,17 @@ public class ConfigurationImpl implements Configuration {
         }
         return cartService;
     }
+
     @Override
     public ViewedProductsHistoryService getViewedProductsHistoryService() {
-        if(viewedProductsHistoryService == null) {
+        if (viewedProductsHistoryService == null) {
             viewedProductsHistoryServiceLock.lock();
             try {
                 if (viewedProductsHistoryService == null) {
-                    viewedProductsHistoryService = new ViewedProductsHistoryServiceImpl(getSessionLockWrapper(), 3);
+                    viewedProductsHistoryService = new ViewedProductsHistoryServiceImpl(
+                            getSessionLockWrapper(),
+                            getProductDao(),
+                            3);
                 }
             } finally {
                 viewedProductsHistoryServiceLock.unlock();
@@ -109,7 +109,7 @@ public class ConfigurationImpl implements Configuration {
 
     @Override
     public SessionLockWrapper getSessionLockWrapper() {
-        if(sessionLockWrapper == null) {
+        if (sessionLockWrapper == null) {
             sessionLockWrapperLock.lock();
             try {
                 if (sessionLockWrapper == null) {

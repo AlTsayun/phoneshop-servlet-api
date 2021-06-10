@@ -3,6 +3,7 @@ package com.es.phoneshop.domain.product.model;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.Currency;
+import java.util.Objects;
 
 public class ProductPrice {
     private LocalDateTime from;
@@ -40,5 +41,18 @@ public class ProductPrice {
 
     public void setCurrency(Currency currency) {
         this.currency = currency;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        ProductPrice that = (ProductPrice) o;
+        return from.equals(that.from) && value.equals(that.value) && currency.equals(that.currency);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(from, value, currency);
     }
 }

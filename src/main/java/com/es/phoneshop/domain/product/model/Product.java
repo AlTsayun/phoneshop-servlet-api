@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 import java.util.Comparator;
 import java.util.Currency;
 import java.util.List;
+import java.util.Objects;
 
 public class Product {
     private Long id;
@@ -76,4 +77,17 @@ public class Product {
     }
 
     public ProductPrice getActualPrice() {return pricesHistory.stream().max(Comparator.comparing(ProductPrice::getFrom)).get();}
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Product product = (Product) o;
+        return stock == product.stock && Objects.equals(id, product.id) && code.equals(product.code) && description.equals(product.description) && imageUrl.equals(product.imageUrl) && pricesHistory.equals(product.pricesHistory);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, code, description, stock, imageUrl, pricesHistory);
+    }
 }

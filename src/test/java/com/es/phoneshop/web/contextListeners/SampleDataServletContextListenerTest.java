@@ -81,8 +81,7 @@ public class SampleDataServletContextListenerTest {
         List<Product> allValues = paramCaptor.getAllValues();
 
         assertEquals(allValues.size(), sampleProducts.size());
-        //todo: override equals() of Product
-        //sampleProducts.forEach(it -> assertTrue(allValues.contains(it)));
+        sampleProducts.forEach(it -> assertTrue(allValues.contains(it)));
     }
 
     @Test

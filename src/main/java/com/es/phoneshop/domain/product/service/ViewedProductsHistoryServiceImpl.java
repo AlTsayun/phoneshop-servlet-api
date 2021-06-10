@@ -1,5 +1,6 @@
 package com.es.phoneshop.domain.product.service;
 
+import com.es.phoneshop.domain.product.persistence.ProductDao;
 import com.es.phoneshop.utils.sessionLock.SessionLockProvider;
 import com.es.phoneshop.utils.sessionLock.SessionLockWrapper;
 
@@ -16,23 +17,29 @@ public class ViewedProductsHistoryServiceImpl implements ViewedProductsHistorySe
     public static final String VIEWED_PRODUCTS_HISTORY_SESSION_LOCK_ATTRIBUTE =
             ViewedProductsHistoryServiceImpl.class.getName() + ".viewedProductsHistory.lock";
     private final SessionLockProvider sessionLockProvider;
+    private final ProductDao productDao;
     private int historySize;
 
-    public ViewedProductsHistoryServiceImpl(SessionLockWrapper sessionLockWrapper, int historySize) {
+    public ViewedProductsHistoryServiceImpl(SessionLockWrapper sessionLockWrapper, ProductDao productDao, int historySize) {
         this.sessionLockProvider = sessionLockWrapper.getSessionLockProvider(VIEWED_PRODUCTS_HISTORY_SESSION_LOCK_ATTRIBUTE);
         this.historySize = historySize;
+        this.productDao = productDao;
     }
 
     @Override
     public void add(List<Long> viewedProductsIds, Long productId) {
-        viewedProductsIds.stream()
-                .filter(productId::equals)
-                .findFirst()
-                .ifPresent(viewedProductsIds::remove);
+        if (productDao.getById(productId).isPresent()) {
+            viewedProductsIds.stream()
+                    .filter(productId::equals)
+                    .findFirst()
+                    .ifPresent(viewedProductsIds::remove);
 
-        readjustHistorySize(viewedProductsIds);
+            readjustHistorySize(viewedProductsIds);
 
-        viewedProductsIds.add(0, productId);
+            viewedProductsIds.add(0, productId);
+        } else {
+            throw new ProductNotFoundException();
+        }
     }
 
     private void readjustHistorySize(List<Long> viewedProducts) {

@@ -16,8 +16,8 @@ public class ServletInitServletContextListener implements ServletContextListener
         if (servletContext.getInitParameter("configuration").equals("default")) {
 
             Configuration configuration = ConfigurationImpl.getInstance();
-            //todo: inject ErrorHandler
             ErrorHandler errorHandler = new ErrorHandler();
+            MessagesHandler messagesHandler = new MessagesHandler();
 
             ServletRegistration.Dynamic productList = servletContext.addServlet(
                     "productList",
@@ -38,7 +38,7 @@ public class ServletInitServletContextListener implements ServletContextListener
 
             ServletRegistration.Dynamic cart = servletContext.addServlet(
                     "cart",
-                    new CartServlet(configuration, errorHandler));
+                    new CartServlet(configuration, messagesHandler));
             cart.addMapping("/cart");
 
         }

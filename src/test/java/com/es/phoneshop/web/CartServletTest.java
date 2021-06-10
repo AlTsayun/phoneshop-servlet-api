@@ -3,10 +3,12 @@ package com.es.phoneshop.web;
 import com.es.phoneshop.domain.cart.model.Cart;
 import com.es.phoneshop.domain.cart.model.CartItem;
 import com.es.phoneshop.domain.cart.service.CartService;
+import com.es.phoneshop.domain.cart.service.ProductQuantityTooLowException;
+import com.es.phoneshop.domain.cart.service.ProductStockNotEnoughException;
 import com.es.phoneshop.domain.product.model.Product;
 import com.es.phoneshop.domain.product.model.ProductPrice;
 import com.es.phoneshop.domain.product.persistence.ProductDao;
-import com.es.phoneshop.domain.product.service.ViewedProductsHistoryService;
+import com.es.phoneshop.domain.product.service.ProductNotFoundException;
 import com.es.phoneshop.infra.config.Configuration;
 import com.es.phoneshop.infra.config.ConfigurationImpl;
 import junit.framework.TestCase;
@@ -50,7 +52,7 @@ public class CartServletTest extends TestCase{
     @Mock
     private ServletConfig config;
     @Mock
-    private ErrorHandler errorHandler;
+    private MessagesHandler messagesHandler;
 
     private Product testProduct;
     private Cart testCart;
@@ -75,7 +77,7 @@ public class CartServletTest extends TestCase{
         Configuration configuration = setupConfiguration(
                 productDao,
                 cartService);
-        servlet = setupServlet(configuration, errorHandler, config);
+        servlet = setupServlet(configuration, messagesHandler, config);
 
         when(request.getRequestDispatcher(anyString())).thenReturn(requestDispatcher);
         when(request.getContextPath()).thenReturn(requestContextPath);
@@ -93,15 +95,15 @@ public class CartServletTest extends TestCase{
 
     private ProductDao setupProductDao(Product product) {
         ProductDao productDao = mock(ProductDao.class);
-        when(productDao.getById(any())).thenReturn(Optional.of(product));
+        when(productDao.getById(product.getId())).thenReturn(Optional.of(product));
         return productDao;
     }
 
     private CartServlet setupServlet(
             Configuration configuration,
-            ErrorHandler errorHandler,
+            MessagesHandler messagesHandler,
             ServletConfig config) throws ServletException {
-        CartServlet servlet = new CartServlet(configuration, errorHandler);
+        CartServlet servlet = new CartServlet(configuration, messagesHandler);
         servlet.init(config);
         return servlet;
     }
@@ -135,7 +137,58 @@ public class CartServletTest extends TestCase{
     }
 
     @Test
-    public void testDoPost() throws ServletException, IOException {
+    public void testDoPostNegativeQuantity() throws IOException {
+        int quantity = -1;
+        Long productId = 0L;
+        doThrow(new ProductQuantityTooLowException()).when(cartService).add(testCart, productId, quantity);
+        when(request.getParameter("productId")).thenReturn(String.valueOf(productId));
+        when(request.getParameter("quantity")).thenReturn(String.valueOf(quantity));
+        when(request.getLocale()).thenReturn(Locale.ENGLISH);
+        when(request.getSession()).thenReturn(session);
+
+        servlet.doPost(request, response);
+
+        verify(cartService).add(any(), eq(productId), eq(quantity));
+        verify(messagesHandler).add(any(), any(), eq(MessagesHandler.MessageType.ERROR), any());
+        verify(response).sendRedirect(eq(requestContextPath + "/products/" + productId));
+    }
+    @Test
+    public void testDoPostProductNotFound() throws IOException {
+        int quantity = 1;
+        Long productId = 1000L;
+
+        doThrow(new ProductNotFoundException()).when(cartService).add(testCart, productId, quantity);
+        when(request.getParameter("productId")).thenReturn(String.valueOf(productId));
+        when(request.getParameter("quantity")).thenReturn(String.valueOf(quantity));
+        when(request.getLocale()).thenReturn(Locale.ENGLISH);
+        when(request.getSession()).thenReturn(session);
+
+        servlet.doPost(request, response);
+
+        verify(cartService).add(any(), eq(productId), eq(quantity));
+        verify(messagesHandler).add(any(), any(), eq(MessagesHandler.MessageType.ERROR), any());
+        verify(response).sendRedirect(eq(requestContextPath + "/products/" + productId));
+    }
+
+    @Test
+    public void testDoPostProductStockNotEnough() throws IOException {
+        int quantity = 1000;
+        Long productId = 0L;
+        doThrow(new ProductStockNotEnoughException()).when(cartService).add(testCart, productId, quantity);
+        when(request.getParameter("productId")).thenReturn(String.valueOf(productId));
+        when(request.getParameter("quantity")).thenReturn(String.valueOf(quantity));
+        when(request.getLocale()).thenReturn(Locale.ENGLISH);
+        when(request.getSession()).thenReturn(session);
+
+        servlet.doPost(request, response);
+
+        verify(cartService).add(any(), eq(productId), eq(quantity));
+        verify(messagesHandler).add(any(), any(), eq(MessagesHandler.MessageType.ERROR), any());
+        verify(response).sendRedirect(eq(requestContextPath + "/products/" + productId));
+    }
+
+    @Test
+    public void testDoPost() throws IOException {
         Long productId = 0L;
         int quantity = 1;
         when(request.getParameter("productId")).thenReturn(String.valueOf(productId));
@@ -146,9 +199,8 @@ public class CartServletTest extends TestCase{
         servlet.doPost(request, response);
 
         verify(cartService).add(any(), eq(productId), eq(quantity));
-
-        verify(request).setAttribute(eq("productName"), eq(testProduct.getDescription()));
-        verify(request).setAttribute(eq("returnPath"), eq(requestContextPath + "/products/" + productId));
+        verify(messagesHandler).add(any(), any(), eq(MessagesHandler.MessageType.SUCCESS), any());
+        verify(response).sendRedirect(eq(requestContextPath + "/products/" + productId));
     }
 
 }

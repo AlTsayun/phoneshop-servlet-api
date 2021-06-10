@@ -2,8 +2,8 @@ package com.es.phoneshop.web.contextListeners;
 
 import com.es.phoneshop.domain.product.persistence.ArrayListProductDao;
 import com.es.phoneshop.infra.config.Configuration;
-import com.es.phoneshop.infra.config.ConfigurationImpl;
 import com.es.phoneshop.domain.product.persistence.ProductDao;
+import com.es.phoneshop.infra.config.ConfigurationImpl;
 
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;

@@ -4,6 +4,7 @@ import com.es.phoneshop.domain.cart.model.Cart;
 import com.es.phoneshop.domain.cart.model.CartItem;
 import com.es.phoneshop.domain.product.model.Product;
 import com.es.phoneshop.domain.product.persistence.ProductDao;
+import com.es.phoneshop.domain.product.service.ProductNotFoundException;
 import com.es.phoneshop.utils.sessionLock.SessionLockProvider;
 import com.es.phoneshop.utils.sessionLock.SessionLockWrapper;
 
@@ -35,7 +36,7 @@ public class CartServiceImpl implements CartService {
                     .findFirst()
                     .orElse(null);
 
-            quantity += oldItem == null ? 0 : oldItem.getQuantity();
+            quantity = Math.addExact(quantity, oldItem == null ? 0 : oldItem.getQuantity());
 
             if (product.getStock() >= quantity){
                 cart.getItems().remove(oldItem);
@@ -43,6 +44,8 @@ public class CartServiceImpl implements CartService {
             } else {
                 throw new ProductStockNotEnoughException();
             }
+        } else {
+            throw new ProductNotFoundException();
         }
     }
 

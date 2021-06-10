@@ -7,8 +7,9 @@
 <jsp:useBean id="product" type="com.es.phoneshop.domain.product.model.Product" scope="request"/>
 <jsp:useBean id="productsInCart" type="java.util.ArrayList" scope="request"/>
 <tags:master pageTitle="Product details">
-
-    <img src="${product.imageUrl}" alt="product image">
+    <div>
+        <img src="${product.imageUrl}" alt="product image">
+    </div>
     <table>
         <thead>
         <tr>

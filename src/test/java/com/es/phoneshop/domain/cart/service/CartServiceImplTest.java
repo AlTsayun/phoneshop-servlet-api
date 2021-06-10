@@ -86,6 +86,16 @@ public class CartServiceImplTest {
         assertEquals(Long.valueOf(1L), testCart.getItems().get(1).getProductId());
     }
 
+    @Test(expected = ProductQuantityTooLowException.class)
+    public void testAddProductQuantityTooLow(){
+        cartService.add(testCart, 0L, -1);
+    }
+
+    @Test(expected = ProductStockNotEnoughException.class)
+    public void testAddProductStockNotEnoughException(){
+        cartService.add(testCart, 0L, 100);
+    }
+
     @Test
     public void testGetCart(){
         HttpSession session = mock(HttpSession.class);
