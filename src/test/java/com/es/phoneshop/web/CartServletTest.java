@@ -48,13 +48,10 @@ public class CartServletTest extends TestCase{
     @Mock
     private HttpServletResponse response;
     @Mock
-    private RequestDispatcher requestDispatcher;
-    @Mock
     private ServletConfig config;
     @Mock
     private MessagesHandler messagesHandler;
 
-    private Product testProduct;
     private Cart testCart;
     private CartService cartService;
 
@@ -69,17 +66,12 @@ public class CartServletTest extends TestCase{
     public void setup() throws ServletException {
 
         session = setupSession();
-        testProduct = setupTestProduct();
-        ProductDao productDao = setupProductDao(testProduct);
         testCart = setupCart();
 
         cartService = setupCartService(testCart);
-        Configuration configuration = setupConfiguration(
-                productDao,
-                cartService);
+        Configuration configuration = setupConfiguration(cartService);
         servlet = setupServlet(configuration, messagesHandler, config);
 
-        when(request.getRequestDispatcher(anyString())).thenReturn(requestDispatcher);
         when(request.getContextPath()).thenReturn(requestContextPath);
     }
 
@@ -113,10 +105,8 @@ public class CartServletTest extends TestCase{
     }
 
     private Configuration setupConfiguration(
-            ProductDao productDao,
             CartService cartService) {
         Configuration configuration = mock(ConfigurationImpl.class);
-        when(configuration.getProductDao()).thenReturn(productDao);
         when(configuration.getCartService()).thenReturn(cartService);
 
         configurationStatic = mockStatic(ConfigurationImpl.class);
@@ -126,7 +116,6 @@ public class CartServletTest extends TestCase{
 
     private CartService setupCartService(Cart cart) {
         CartService cartService = mock(CartService.class);
-        when(cartService.getCart(any())).thenReturn(cart);
         when(cartService.getCart(any())).thenReturn(cart);
         return cartService;
     }
