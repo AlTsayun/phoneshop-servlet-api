@@ -25,13 +25,7 @@ public class ArrayListProductDaoTest {
 
     @Before
     public void setup() {
-        productDao = new ArrayListProductDao(
-                new LongIdGeneratorImpl(0L),
-                Clock.fixed(
-                        Instant.parse("2021-01-01T00:00:00.00Z"),
-                        ZoneId.of("Europe/London")
-                )
-        );
+        productDao = new ArrayListProductDao(new LongIdGeneratorImpl(0L));
         ArrayListProductDao.getSampleProducts().forEach(it -> productDao.save(it));
         initialProducts = productDao.getAll();
     }

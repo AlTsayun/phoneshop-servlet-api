@@ -15,15 +15,16 @@ import java.util.NoSuchElementException;
 
 public class ProductPricesHistoryServlet extends HttpServlet {
 
-    private Configuration configuration;
+    private final Configuration configuration;
 
-    private ProductDao productDao;
+    private final ProductDao productDao;
 
-    @Override
-    public void init(ServletConfig config) throws ServletException {
-        super.init(config);
-        configuration = ConfigurationImpl.getInstance();
-        productDao = configuration.getProductDao();
+    private final ErrorHandler errorHandler;
+
+    public ProductPricesHistoryServlet(Configuration configuration, ErrorHandler errorHandler) {
+        this.configuration = configuration;
+        this.errorHandler = errorHandler;
+        this.productDao = configuration.getProductDao();
     }
 
     @Override
@@ -34,12 +35,9 @@ public class ProductPricesHistoryServlet extends HttpServlet {
             Product product = productDao.getById(id).get();
             request.setAttribute("product", product);
             request.setAttribute("prices", product.getPricesHistory());
-
             request.getRequestDispatcher("/WEB-INF/pages/productPrices.jsp").forward(request, response);
-        } catch (NumberFormatException | NoSuchElementException e){
-            request.setAttribute("productIdStr", productIdStr);
-            response.setStatus(404);
-            request.getRequestDispatcher("/WEB-INF/pages/productNotFound.jsp").forward(request, response);
+        } catch (NumberFormatException | NoSuchElementException e) {
+            errorHandler.productNotFound(request, response, productIdStr);
         }
     }
 }

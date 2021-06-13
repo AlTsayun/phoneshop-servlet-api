@@ -16,15 +16,16 @@ import java.io.IOException;
 
 public class ProductListPageServlet extends HttpServlet {
 
-    private Configuration configuration;
+    private final Configuration configuration;
 
-    private ProductDao productDao;
+    private final ProductDao productDao;
 
-    @Override
-    public void init(ServletConfig config) throws ServletException {
-        super.init(config);
-        configuration = ConfigurationImpl.getInstance();
-        productDao = configuration.getProductDao();
+    private final ErrorHandler errorHandler;
+
+    public ProductListPageServlet(Configuration configuration, ErrorHandler errorHandler) {
+        this.configuration = configuration;
+        this.errorHandler = errorHandler;
+        this.productDao = configuration.getProductDao();
     }
 
     @Override
