@@ -23,6 +23,9 @@
                 <tags:sortLink sortingCriteria="price" sortingOrder="asc"/>
                 <tags:sortLink sortingCriteria="price" sortingOrder="desc"/>
             </td>
+            <td>
+                Add to cart
+            </td>
         </tr>
         </thead>
         <c:forEach var="product" items="${products}">
@@ -38,9 +41,19 @@
                 <td class="price">
                     <c:set var="price" value="${product.getActualPrice()}" scope="application"/>
                     <a href="${pageContext.servletContext.contextPath}/product-prices-history/${product.id}">
-                        <fmt:formatNumber value="${price.value}" type="currency"
-                                          currencySymbol="${price.currency.symbol}"/>
+                        <fmt:formatNumber value="${price.value}" type="currency" currencySymbol="${price.currency.symbol}"/>
                     </a>
+                </td>
+                <td>
+                    <form method="post" action="${pageContext.request.contextPath}/cart/add">
+                        <input type="hidden" name="productId" value="${product.id}"/>
+                        <input type="hidden" name="returnPath" value="/products">
+                        <div>
+                            Quantity:
+                            <input type="number" name="quantity" value="1"/>
+                        <button type="submit">Add to cart</button>
+                        </div>
+                    </form>
                 </td>
             </tr>
         </c:forEach>
