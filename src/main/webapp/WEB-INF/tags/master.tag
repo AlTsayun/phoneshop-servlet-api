@@ -16,6 +16,7 @@
         PhoneShop
     </a>
 </header>
+<jsp:include page="/cart/minicart"/>
 <main>
     <tags:sessionMessagePrinter errorMessagesKey="errorMessages" successMessagesKey="successMessages"/>
     <jsp:doBody/>
