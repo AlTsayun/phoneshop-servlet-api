@@ -20,7 +20,6 @@ import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.junit.MockitoJUnitRunner;
 
-import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -37,11 +36,10 @@ import java.util.Locale;
 import java.util.Optional;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
 @RunWith(MockitoJUnitRunner.class)
-public class CartServletTest extends TestCase{
+public class CartItemAddServletTest extends TestCase{
 
     @Mock
     private HttpServletRequest request;
@@ -58,7 +56,7 @@ public class CartServletTest extends TestCase{
     private HttpSession session;
 
     private MockedStatic<ConfigurationImpl> configurationStatic;
-    private CartServlet servlet;
+    private CartItemAddServlet servlet;
 
     private String requestContextPath = "requestContextPath";
 
@@ -91,11 +89,11 @@ public class CartServletTest extends TestCase{
         return productDao;
     }
 
-    private CartServlet setupServlet(
+    private CartItemAddServlet setupServlet(
             Configuration configuration,
             MessagesHandler messagesHandler,
             ServletConfig config) throws ServletException {
-        CartServlet servlet = new CartServlet(configuration, messagesHandler);
+        CartItemAddServlet servlet = new CartItemAddServlet(configuration, messagesHandler);
         servlet.init(config);
         return servlet;
     }
@@ -129,7 +127,7 @@ public class CartServletTest extends TestCase{
     public void testDoPostNegativeQuantity() throws IOException {
         int quantity = -1;
         Long productId = 0L;
-        doThrow(new ProductQuantityTooLowException()).when(cartService).add(testCart, productId, quantity);
+        doThrow(new ProductQuantityTooLowException(quantity)).when(cartService).add(session, productId, quantity);
         when(request.getParameter("productId")).thenReturn(String.valueOf(productId));
         when(request.getParameter("quantity")).thenReturn(String.valueOf(quantity));
         when(request.getLocale()).thenReturn(Locale.ENGLISH);
@@ -146,7 +144,7 @@ public class CartServletTest extends TestCase{
         int quantity = 1;
         Long productId = 1000L;
 
-        doThrow(new ProductNotFoundException()).when(cartService).add(testCart, productId, quantity);
+        doThrow(new ProductNotFoundException(productId.toString())).when(cartService).add(testCart, productId, quantity);
         when(request.getParameter("productId")).thenReturn(String.valueOf(productId));
         when(request.getParameter("quantity")).thenReturn(String.valueOf(quantity));
         when(request.getLocale()).thenReturn(Locale.ENGLISH);

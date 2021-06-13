@@ -27,18 +27,30 @@ public class ViewedProductsHistoryServiceImpl implements ViewedProductsHistorySe
     }
 
     @Override
-    public void add(List<Long> viewedProductsIds, Long productId) {
-        if (productDao.getById(productId).isPresent()) {
-            viewedProductsIds.stream()
-                    .filter(productId::equals)
-                    .findFirst()
-                    .ifPresent(viewedProductsIds::remove);
+    public void add(HttpSession session, Long productId) {
+        sessionLockProvider.getLock(session).readLock().lock();
+        try {
 
-            readjustHistorySize(viewedProductsIds);
+            List<Long> productsIds = (List<Long>) session.getAttribute(VIEWED_PRODUCTS_HISTORY_SESSION_ATTRIBUTE);
+            if (productsIds == null) {
+                session.setAttribute(VIEWED_PRODUCTS_HISTORY_SESSION_ATTRIBUTE, productsIds = new ArrayList<>());
+            }
 
-            viewedProductsIds.add(0, productId);
-        } else {
-            throw new ProductNotFoundException();
+            if (productDao.getById(productId).isPresent()) {
+                productsIds.stream()
+                        .filter(productId::equals)
+                        .findFirst()
+                        .ifPresent(productsIds::remove);
+
+                readjustHistorySize(productsIds);
+
+                productsIds.add(0, productId);
+            } else {
+                throw new ProductNotFoundException(productId.toString());
+            }
+
+        } finally {
+            sessionLockProvider.getLock(session).readLock().unlock();
         }
     }
 
@@ -53,7 +65,7 @@ public class ViewedProductsHistoryServiceImpl implements ViewedProductsHistorySe
 
     @Override
     public List<Long> getProductIds(HttpSession session) {
-        sessionLockProvider.getLock(session).lock();
+        sessionLockProvider.getLock(session).readLock().lock();
         try {
             List<Long> products = (List<Long>) session.getAttribute(VIEWED_PRODUCTS_HISTORY_SESSION_ATTRIBUTE);
             if (products == null) {
@@ -61,7 +73,7 @@ public class ViewedProductsHistoryServiceImpl implements ViewedProductsHistorySe
             }
             return products;
         } finally {
-            sessionLockProvider.getLock(session).unlock();
+            sessionLockProvider.getLock(session).readLock().unlock();
         }
     }
 }
