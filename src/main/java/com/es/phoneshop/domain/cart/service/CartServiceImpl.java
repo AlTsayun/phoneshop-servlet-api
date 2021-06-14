@@ -9,18 +9,20 @@ import com.es.phoneshop.utils.sessionLock.SessionLockProvider;
 import com.es.phoneshop.utils.sessionLock.SessionLockWrapper;
 
 import javax.servlet.http.HttpSession;
-import java.util.ArrayList;
 import java.util.Optional;
+import java.util.concurrent.locks.Lock;
 
 public class CartServiceImpl implements CartService {
 
-    public static final String CART_SESSION_ATTRIBUTE = CartServiceImpl.class.getName() + ".cart";
-    public static final String CART_SESSION_LOCK_ATTRIBUTE = CartServiceImpl.class.getName() + ".cart.lock";
+    private final String cartSessionAttributeName;
     private final ProductDao productDao;
     private final SessionLockProvider sessionLockProvider;
-    public CartServiceImpl(ProductDao productDao, SessionLockWrapper sessionLockWrapper) {
+    public CartServiceImpl(ProductDao productDao,
+                           String cartSessionAttributeName,
+                           SessionLockProvider sessionLockProvider) {
         this.productDao = productDao;
-        this.sessionLockProvider = sessionLockWrapper.getSessionLockProvider(CART_SESSION_LOCK_ATTRIBUTE);
+        this.cartSessionAttributeName = cartSessionAttributeName;
+        this.sessionLockProvider = sessionLockProvider;
     }
 
     @Override
@@ -62,17 +64,15 @@ public class CartServiceImpl implements CartService {
         if (productOptional.isPresent()) {
             Product product = productOptional.get();
 
-            sessionLockProvider.getLock(session).writeLock().lock();
+            Lock lock = sessionLockProvider.getLock(session).writeLock();
+            lock.lock();
             try {
-                Cart cart = (Cart) session.getAttribute(CART_SESSION_ATTRIBUTE);
-                if (cart == null) {
-                    session.setAttribute(CART_SESSION_ATTRIBUTE, cart = new Cart(new ArrayList<>()));
-                }
+                Cart cart = (Cart) session.getAttribute(cartSessionAttributeName);
 
                 modificationAction.apply(cart, product);
 
             } finally {
-                sessionLockProvider.getLock(session).writeLock().unlock();
+                lock.unlock();
             }
 
         } else {
@@ -116,15 +116,12 @@ public class CartServiceImpl implements CartService {
 
     @Override
     public Cart getCart(HttpSession session) {
-        sessionLockProvider.getLock(session).readLock().lock();
+        Lock lock = sessionLockProvider.getLock(session).readLock();
+        lock.lock();
         try {
-            Cart cart = (Cart) session.getAttribute(CART_SESSION_ATTRIBUTE);
-            if (cart == null) {
-                session.setAttribute(CART_SESSION_ATTRIBUTE, cart = new Cart(new ArrayList<>()));
-            }
-            return cart;
+            return (Cart) session.getAttribute(cartSessionAttributeName);
         } finally {
-            sessionLockProvider.getLock(session).readLock().unlock();
+            lock.unlock();
         }
     }
 

@@ -1,6 +1,5 @@
 package com.es.phoneshop.web;
 
-import com.es.phoneshop.domain.cart.model.Cart;
 import com.es.phoneshop.domain.cart.model.ProductInCart;
 import com.es.phoneshop.domain.cart.service.CartService;
 import com.es.phoneshop.domain.cart.service.ProductQuantityTooLowException;
@@ -17,6 +16,7 @@ import java.io.IOException;
 import java.text.NumberFormat;
 import java.text.ParseException;
 import java.util.List;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import static com.es.phoneshop.web.MessagesHandler.MessageType.ERROR;
@@ -77,14 +77,27 @@ public class CartPageServlet extends HttpServlet {
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-//        try {
-            List<ProductInCart> productsInCart = cartService.getCart(request.getSession()).getItems().stream()
-                    .map(it -> new ProductInCart(productDao.getById(it.getProductId()).get(), it.getQuantity()))
-                    .collect(Collectors.toList());
-            request.setAttribute("productsInCart", productsInCart);
-            request.getRequestDispatcher("/WEB-INF/pages/cart.jsp").forward(request, response);
-//        } catch (NoSuchElementException e){
-//            //todo: handle no product found with such id
-//        }
+        List<ProductInCart> productsInCart = cartService.getCart(request.getSession()).getItems().stream()
+                .filter(it -> isPresentInDao(it.getProductId(), id ->
+                    messagesHandler.add(
+                            request,
+                            response,
+                            ERROR,
+                            "Item wih id " + it.getProductId() + "is not present in catalog and hence deleted from cart.")
+                ))
+                .map(it -> new ProductInCart(productDao.getById(it.getProductId()).get(), it.getQuantity()))
+                .collect(Collectors.toList());
+        request.setAttribute("productsInCart", productsInCart);
+        request.getRequestDispatcher("/WEB-INF/pages/cart.jsp").forward(request, response);
+
+    }
+
+    private boolean isPresentInDao(Long productId, Consumer<Long> negativeAction){
+        if (productDao.getById(productId).isPresent()) {
+            return true;
+        } else {
+            negativeAction.accept(productId);
+            return false;
+        }
     }
 }

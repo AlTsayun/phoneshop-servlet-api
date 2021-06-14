@@ -77,18 +77,6 @@ public class CartItemAddServletTest extends TestCase{
         return mock(HttpSession.class);
     }
 
-    private Product setupTestProduct() {
-        return new Product(0L, "code", "descrition", 1, null,
-                List.of(new ProductPrice(LocalDateTime.of(2000, Month.JANUARY, 1, 0, 0), new BigDecimal(100),
-                        Currency.getInstance("USD"))));
-    }
-
-    private ProductDao setupProductDao(Product product) {
-        ProductDao productDao = mock(ProductDao.class);
-        when(productDao.getById(product.getId())).thenReturn(Optional.of(product));
-        return productDao;
-    }
-
     private CartItemAddServlet setupServlet(
             Configuration configuration,
             MessagesHandler messagesHandler,
@@ -113,9 +101,7 @@ public class CartItemAddServletTest extends TestCase{
     }
 
     private CartService setupCartService(Cart cart) {
-        CartService cartService = mock(CartService.class);
-        when(cartService.getCart(any())).thenReturn(cart);
-        return cartService;
+        return mock(CartService.class);
     }
 
     @After
@@ -127,9 +113,12 @@ public class CartItemAddServletTest extends TestCase{
     public void testDoPostNegativeQuantity() throws IOException {
         int quantity = -1;
         Long productId = 0L;
+        String returnPath = "/products/0";
+
         doThrow(new ProductQuantityTooLowException(quantity)).when(cartService).add(session, productId, quantity);
         when(request.getParameter("productId")).thenReturn(String.valueOf(productId));
         when(request.getParameter("quantity")).thenReturn(String.valueOf(quantity));
+        when(request.getParameter("returnPath")).thenReturn(returnPath);
         when(request.getLocale()).thenReturn(Locale.ENGLISH);
         when(request.getSession()).thenReturn(session);
 
@@ -137,16 +126,18 @@ public class CartItemAddServletTest extends TestCase{
 
         verify(cartService).add(any(), eq(productId), eq(quantity));
         verify(messagesHandler).add(any(), any(), eq(MessagesHandler.MessageType.ERROR), any());
-        verify(response).sendRedirect(eq(requestContextPath + "/products/" + productId));
+        verify(response).sendRedirect(eq(requestContextPath + returnPath));
     }
     @Test
     public void testDoPostProductNotFound() throws IOException {
         int quantity = 1;
         Long productId = 1000L;
+        String returnPath = "/products/0";
 
-        doThrow(new ProductNotFoundException(productId.toString())).when(cartService).add(testCart, productId, quantity);
+        doThrow(new ProductNotFoundException(productId.toString())).when(cartService).add(session, productId, quantity);
         when(request.getParameter("productId")).thenReturn(String.valueOf(productId));
         when(request.getParameter("quantity")).thenReturn(String.valueOf(quantity));
+        when(request.getParameter("returnPath")).thenReturn(returnPath);
         when(request.getLocale()).thenReturn(Locale.ENGLISH);
         when(request.getSession()).thenReturn(session);
 
@@ -154,16 +145,19 @@ public class CartItemAddServletTest extends TestCase{
 
         verify(cartService).add(any(), eq(productId), eq(quantity));
         verify(messagesHandler).add(any(), any(), eq(MessagesHandler.MessageType.ERROR), any());
-        verify(response).sendRedirect(eq(requestContextPath + "/products/" + productId));
+        verify(response).sendRedirect(eq(requestContextPath + returnPath));
     }
 
     @Test
     public void testDoPostProductStockNotEnough() throws IOException {
         int quantity = 1000;
         Long productId = 0L;
-        doThrow(new ProductStockNotEnoughException()).when(cartService).add(testCart, productId, quantity);
+        String returnPath = "/products/0";
+
+        doThrow(new ProductStockNotEnoughException()).when(cartService).add(session, productId, quantity);
         when(request.getParameter("productId")).thenReturn(String.valueOf(productId));
         when(request.getParameter("quantity")).thenReturn(String.valueOf(quantity));
+        when(request.getParameter("returnPath")).thenReturn(returnPath);
         when(request.getLocale()).thenReturn(Locale.ENGLISH);
         when(request.getSession()).thenReturn(session);
 
@@ -171,15 +165,18 @@ public class CartItemAddServletTest extends TestCase{
 
         verify(cartService).add(any(), eq(productId), eq(quantity));
         verify(messagesHandler).add(any(), any(), eq(MessagesHandler.MessageType.ERROR), any());
-        verify(response).sendRedirect(eq(requestContextPath + "/products/" + productId));
+        verify(response).sendRedirect(eq(requestContextPath + returnPath));
     }
 
     @Test
     public void testDoPost() throws IOException {
         Long productId = 0L;
         int quantity = 1;
+        String returnPath = "/products/0";
+
         when(request.getParameter("productId")).thenReturn(String.valueOf(productId));
         when(request.getParameter("quantity")).thenReturn(String.valueOf(quantity));
+        when(request.getParameter("returnPath")).thenReturn(returnPath);
         when(request.getLocale()).thenReturn(Locale.ENGLISH);
         when(request.getSession()).thenReturn(session);
 
@@ -187,7 +184,7 @@ public class CartItemAddServletTest extends TestCase{
 
         verify(cartService).add(any(), eq(productId), eq(quantity));
         verify(messagesHandler).add(any(), any(), eq(MessagesHandler.MessageType.SUCCESS), any());
-        verify(response).sendRedirect(eq(requestContextPath + "/products/" + productId));
+        verify(response).sendRedirect(eq(requestContextPath + returnPath));
     }
 
 }

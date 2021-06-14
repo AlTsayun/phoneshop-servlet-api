@@ -3,11 +3,11 @@ package com.es.phoneshop.web.contextListeners;
 import com.es.phoneshop.infra.config.Configuration;
 import com.es.phoneshop.infra.config.ConfigurationImpl;
 import com.es.phoneshop.web.*;
+import com.es.phoneshop.web.filters.CartFilter;
+import com.es.phoneshop.web.filters.RecentlyViewedProductsFilter;
 
-import javax.servlet.ServletContext;
-import javax.servlet.ServletContextEvent;
-import javax.servlet.ServletContextListener;
-import javax.servlet.ServletRegistration;
+import javax.servlet.*;
+import java.util.EnumSet;
 
 public class ServletInitServletContextListener implements ServletContextListener {
     @Override
@@ -35,7 +35,7 @@ public class ServletInitServletContextListener implements ServletContextListener
             productPricesHistory.addMapping("/product-prices-history/*");
 
             ServletRegistration.Dynamic cartItemAddServlet = servletContext.addServlet(
-                    "cartItemAddServlet",
+                    "cartItemAdd",
                     new CartItemAddServlet(configuration, messagesHandler));
             cartItemAddServlet.addMapping("/cart/add");
 
@@ -45,15 +45,22 @@ public class ServletInitServletContextListener implements ServletContextListener
             cart.addMapping("/cart");
 
             ServletRegistration.Dynamic cartItemDeleteServlet = servletContext.addServlet(
-                    "cartItemDeleteServlet",
+                    "cartItemDelete",
                     new CartItemDeleteServlet(configuration, messagesHandler));
             cartItemDeleteServlet.addMapping("/cart/delete/*");
 
             ServletRegistration.Dynamic miniCartServlet = servletContext.addServlet(
                     "miniCart",
-                    new MiniCartServlet(configuration));
+                    new MiniCartServlet(configuration, messagesHandler));
             miniCartServlet.addMapping("/cart/minicart");
 
+            FilterRegistration.Dynamic cartFilter = servletContext.addFilter("cart", new CartFilter(configuration));
+            cartFilter.addMappingForUrlPatterns(EnumSet.of(DispatcherType.REQUEST), true, "/*");
+
+            FilterRegistration.Dynamic recentlyViewedProductsFilter = servletContext.addFilter(
+                    "recentlyViewedProducts",
+                    new RecentlyViewedProductsFilter(configuration));
+            recentlyViewedProductsFilter.addMappingForUrlPatterns(EnumSet.of(DispatcherType.REQUEST), true, "/*");
         }
     }
 

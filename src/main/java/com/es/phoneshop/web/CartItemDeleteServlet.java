@@ -1,6 +1,7 @@
 package com.es.phoneshop.web;
 
 import com.es.phoneshop.domain.cart.service.CartService;
+import com.es.phoneshop.domain.cart.service.ProductNotFoundInCartException;
 import com.es.phoneshop.domain.product.persistence.ProductDao;
 import com.es.phoneshop.domain.product.service.ProductNotFoundException;
 import com.es.phoneshop.infra.config.Configuration;
@@ -38,6 +39,8 @@ public class CartItemDeleteServlet extends HttpServlet {
             messagesHandler.add(request, response, SUCCESS, "Product is successfully deleted from your cart.");
         } catch (NumberFormatException | ProductNotFoundException e) {
             messagesHandler.add(request, response, ERROR, "Product is not found.");
+        } catch (ProductNotFoundInCartException e) {
+            messagesHandler.add(request, response, ERROR, "Product is not present in cart.");
         }
 
         response.sendRedirect(request.getContextPath() + (returnPath != null ? returnPath : "/cart"));

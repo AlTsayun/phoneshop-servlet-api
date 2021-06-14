@@ -4,9 +4,12 @@ import com.es.phoneshop.domain.product.model.Product;
 import com.es.phoneshop.domain.product.model.ProductPrice;
 import com.es.phoneshop.domain.product.persistence.ProductDao;
 import com.es.phoneshop.utils.sessionLock.SessionLockProvider;
-import com.es.phoneshop.utils.sessionLock.SessionLockWrapper;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
+import org.mockito.junit.MockitoJUnitRunner;
 
 import javax.servlet.http.HttpSession;
 
@@ -18,23 +21,87 @@ import java.util.Currency;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReadWriteLock;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.*;
 
 public class ViewedProductsHistoryServiceImplTest {
 
-    private ViewedProductsHistoryServiceImpl service;
-
-    private List<Product> testProducts;
-    private ProductDao productDao;
-
     @Before
     public void setup(){
-
         testProducts = setupTestProducts();
         productDao = setupProductDao(testProducts);
-        service = new ViewedProductsHistoryServiceImpl(setupSessionLockWrapper(), productDao, 3);
+        service = new ViewedProductsHistoryServiceImpl(
+                productDao,
+                viewedProductsSessionAttributeName,
+                setupSessionLockProvider(),
+                3);
+    }
+
+    @Test
+    public void testAdd() {
+
+        List<Long> productIds = new ArrayList<>();
+
+        HttpSession session = setupSession(viewedProductsSessionAttributeName, productIds);
+
+        List<Long> expectedIds = new ArrayList<>();
+        expectedIds.add(0L);
+        service.add(session, 0L);
+        assertEquals(expectedIds, productIds);
+
+        productIds.clear();
+        expectedIds = new ArrayList<>();
+        expectedIds.add(1L);
+        expectedIds.add(0L);
+        service.add(session, 0L);
+        service.add(session, 1L);
+        assertEquals(expectedIds, productIds);
+
+        productIds.clear();
+        expectedIds = new ArrayList<>();
+        expectedIds.add(0L);
+        expectedIds.add(1L);
+        service.add(session, 0L);
+        service.add(session, 1L);
+        service.add(session, 0L);
+        assertEquals(expectedIds, productIds);
+
+        productIds.clear();
+        expectedIds = new ArrayList<>();
+        expectedIds.add(3L);
+        expectedIds.add(2L);
+        expectedIds.add(1L);
+        service.add(session, 0L);
+        service.add(session, 1L);
+        service.add(session, 2L);
+        service.add(session, 3L);
+        assertEquals(expectedIds, productIds);
+
+    }
+
+
+    @Test(expected = ProductNotFoundException.class)
+    public void testAddWrongProductId() {
+        List<Long> productIds = new ArrayList<>();
+        HttpSession session = setupSession(viewedProductsSessionAttributeName, productIds);
+        service.add(session, 10L);
+    }
+
+    @Test
+    public void testGetProductIds() {
+        List<Long> productsIds = new ArrayList<>();
+        productsIds.add(0L);
+        HttpSession session = setupSession(viewedProductsSessionAttributeName, productsIds);
+        assertEquals(productsIds, service.getProductIds(session));
+    }
+
+
+    private HttpSession setupSession(String viewedProductsSessionAttributeName, List<Long> productIds){
+        HttpSession session = mock(HttpSession.class);
+        when(session.getAttribute(viewedProductsSessionAttributeName)).thenReturn(productIds);
+        return session;
     }
 
     private List<Product> setupTestProducts() {
@@ -59,59 +126,21 @@ public class ViewedProductsHistoryServiceImplTest {
     }
 
 
-    private SessionLockWrapper setupSessionLockWrapper(){
-        SessionLockWrapper sessionLockWrapper = mock(SessionLockWrapper.class);
+    private SessionLockProvider setupSessionLockProvider(){
         SessionLockProvider sessionLockProvider = mock(SessionLockProvider.class);
-        Lock lock = mock(Lock.class);
-        when(sessionLockProvider.getLock(any())).thenReturn(lock);
-        when(sessionLockWrapper.getSessionLockProvider(any())).thenReturn(sessionLockProvider);
-        return sessionLockWrapper;
+        ReadWriteLock readWriteLock = mock(ReadWriteLock.class);
+        Lock readLock = mock(Lock.class);
+        Lock writeLock = mock(Lock.class);
+        when(sessionLockProvider.getLock(any())).thenReturn(readWriteLock);
+        when(readWriteLock.readLock()).thenReturn(readLock);
+        when(readWriteLock.writeLock()).thenReturn(writeLock);
+        return sessionLockProvider;
     }
 
-    @Test
-    public void testAdd() {
+    private ViewedProductsHistoryServiceImpl service;
 
-        List<Long> productsIds = new ArrayList<>();
-        service.add(productsIds, 0L);
-        assertEquals(productsIds.get(0), Long.valueOf(0L));
+    private List<Product> testProducts;
+    private ProductDao productDao;
 
-        service.add(productsIds, 1L);
-        assertEquals(productsIds.get(0), Long.valueOf(1L));
-        assertEquals(productsIds.get(1), Long.valueOf(0L));
-
-
-        service.add(productsIds, 0L);
-        assertEquals(productsIds.get(0), Long.valueOf(0L));
-        assertEquals(productsIds.get(1), Long.valueOf(1L));
-
-        service.add(productsIds, 0L);
-        service.add(productsIds, 1L);
-        service.add(productsIds, 2L);
-        service.add(productsIds, 3L);
-        assertEquals(productsIds.size(), 3);
-        assertEquals(productsIds.get(0), Long.valueOf(3L));
-        assertEquals(productsIds.get(1), Long.valueOf(2L));
-        assertEquals(productsIds.get(2), Long.valueOf(1L));
-
-    }
-
-    @Test
-    public void testGetProductIds() {
-        HttpSession session = mock(HttpSession.class);
-        List<Long> productsIds = List.of(0L);
-        when(session.getAttribute(ViewedProductsHistoryServiceImpl.VIEWED_PRODUCTS_HISTORY_SESSION_ATTRIBUTE))
-                .thenReturn(productsIds);
-        service.getProductIds(session);
-
-        verify(session).getAttribute(eq(ViewedProductsHistoryServiceImpl.VIEWED_PRODUCTS_HISTORY_SESSION_ATTRIBUTE));
-
-
-        when(session.getAttribute(ViewedProductsHistoryServiceImpl.VIEWED_PRODUCTS_HISTORY_SESSION_ATTRIBUTE))
-                .thenReturn(null);
-        service.getProductIds(session);
-
-        verify(session).setAttribute(
-                eq(ViewedProductsHistoryServiceImpl.VIEWED_PRODUCTS_HISTORY_SESSION_ATTRIBUTE),
-                eq(List.of()));
-    }
+    private final String viewedProductsSessionAttributeName = "session.viewedProducts";
 }
