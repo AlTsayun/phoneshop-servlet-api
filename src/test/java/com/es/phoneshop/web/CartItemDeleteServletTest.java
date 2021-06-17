@@ -1,15 +1,9 @@
 package com.es.phoneshop.web;
 
-import com.es.phoneshop.domain.cart.model.Cart;
-import com.es.phoneshop.domain.cart.model.CartItem;
 import com.es.phoneshop.domain.cart.service.CartService;
 import com.es.phoneshop.domain.cart.service.ProductNotFoundInCartException;
-import com.es.phoneshop.domain.cart.service.ProductQuantityTooLowException;
-import com.es.phoneshop.domain.cart.service.ProductStockNotEnoughException;
-import com.es.phoneshop.domain.product.service.ProductNotFoundException;
 import com.es.phoneshop.infra.config.Configuration;
 import com.es.phoneshop.infra.config.ConfigurationImpl;
-import com.es.phoneshop.web.MessagesHandler.MessageType;
 import junit.framework.TestCase;
 import org.junit.After;
 import org.junit.Before;
@@ -26,11 +20,11 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import java.io.IOException;
 
-import static com.es.phoneshop.web.MessagesHandler.MessageType.*;
+import static com.es.phoneshop.web.MessagesHandler.MessageType.ERROR;
+import static com.es.phoneshop.web.MessagesHandler.MessageType.SUCCESS;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
-import static org.mockito.Mockito.verify;
 
 @RunWith(MockitoJUnitRunner.class)
 public class CartItemDeleteServletTest extends TestCase{
@@ -51,7 +45,7 @@ public class CartItemDeleteServletTest extends TestCase{
     private MockedStatic<ConfigurationImpl> configurationStatic;
     private CartItemDeleteServlet servlet;
 
-    private String requestContextPath = "requestContextPath";
+    private String referer = "/referer";
 
     @Before
     public void setup() throws ServletException {
@@ -62,7 +56,7 @@ public class CartItemDeleteServletTest extends TestCase{
         Configuration configuration = setupConfiguration(cartService);
         servlet = setupServlet(configuration, messagesHandler, config);
 
-        when(request.getContextPath()).thenReturn(requestContextPath);
+        when(request.getHeader(eq("referer"))).thenReturn(referer);
     }
 
     private HttpSession setupSession() {
@@ -100,33 +94,41 @@ public class CartItemDeleteServletTest extends TestCase{
     @Test
     public void testDoPostProductNotFound() throws IOException {
         Long productId = 0L;
-        String returnPath = "/products/0";
 
         doThrow(new ProductNotFoundInCartException(productId.toString()))
                 .when(cartService).deleteById(session, productId);
-        when(request.getPathInfo()).thenReturn("/" + productId);
-        when(request.getParameter("returnPath")).thenReturn(returnPath);
+        when(request.getParameter("productId")).thenReturn(productId.toString());
         when(request.getSession()).thenReturn(session);
 
         servlet.doPost(request, response);
 
         verify(messagesHandler).add(any(), any(), eq(ERROR), any());
-        verify(response).sendRedirect(eq(requestContextPath + returnPath));
+        verify(response).sendRedirect(eq(referer));
     }
 
     @Test
     public void testDoPost() throws IOException {
         Long productId = 0L;
-        String returnPath = "/products/0";
 
-        when(request.getPathInfo()).thenReturn("/" + productId);
-        when(request.getParameter("returnPath")).thenReturn(returnPath);
+        when(request.getParameter("productId")).thenReturn(productId.toString());
         when(request.getSession()).thenReturn(session);
 
         servlet.doPost(request, response);
 
         verify(cartService).deleteById(eq(session), eq(productId));
         verify(messagesHandler).add(any(), any(), eq(SUCCESS), any());
-        verify(response).sendRedirect(eq(requestContextPath + returnPath));
+        verify(response).sendRedirect(eq(referer));
+    }
+
+    @Test
+    public void testDoPostProductIllegalId() throws IOException {
+        String productId = "wasd";
+
+        when(request.getParameter("productId")).thenReturn(productId);
+
+        servlet.doPost(request, response);
+
+        verify(messagesHandler).add(any(), any(), eq(ERROR), any());
+        verify(response).sendRedirect(eq(referer));
     }
 }

@@ -2,7 +2,6 @@ package com.es.phoneshop.domain.product.service;
 
 import com.es.phoneshop.domain.product.persistence.ProductDao;
 import com.es.phoneshop.utils.sessionLock.SessionLockProvider;
-import com.es.phoneshop.utils.sessionLock.SessionLockWrapper;
 
 import javax.servlet.http.HttpSession;
 import java.util.ArrayList;
@@ -29,11 +28,15 @@ public class ViewedProductsHistoryServiceImpl implements ViewedProductsHistorySe
 
     @Override
     public void add(HttpSession session, Long productId) {
-        Lock lock = sessionLockProvider.getLock(session).readLock();
+        Lock lock = sessionLockProvider.getLock(session).writeLock();
         lock.lock();
         try {
 
             List<Long> productsIds = (List<Long>) session.getAttribute(viewedProductsSessionAttributeName);
+
+            if (productsIds == null) {
+                session.setAttribute(viewedProductsSessionAttributeName, productsIds = new ArrayList<>());
+            }
 
             if (productDao.getById(productId).isPresent()) {
                 productsIds.stream()
@@ -64,10 +67,14 @@ public class ViewedProductsHistoryServiceImpl implements ViewedProductsHistorySe
 
     @Override
     public List<Long> getProductIds(HttpSession session) {
-        Lock lock =sessionLockProvider.getLock(session).readLock();
+        Lock lock = sessionLockProvider.getLock(session).writeLock();
         lock.lock();
         try {
-            return (List<Long>) session.getAttribute(viewedProductsSessionAttributeName);
+            List<Long> productsIds = (List<Long>) session.getAttribute(viewedProductsSessionAttributeName);
+            if (productsIds == null) {
+                session.setAttribute(viewedProductsSessionAttributeName, productsIds = new ArrayList<>());
+            }
+            return productsIds;
         } finally {
             lock.unlock();
         }

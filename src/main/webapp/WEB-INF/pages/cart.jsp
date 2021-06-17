@@ -45,7 +45,7 @@
                         <input type="hidden" name="productId" value="${productInCart.product.id}"/>
                     </td>
                     <td>
-                        <button formaction="${pageContext.servletContext.contextPath}/cart/delete/${productInCart.product.id}">
+                        <button formaction="${pageContext.servletContext.contextPath}/cart/delete?productId=${productInCart.product.id}">
                             Delete
                         </button>
                     </td>
@@ -54,5 +54,4 @@
         </table>
         <button type="submit">Update</button>
     </form>
-    <form method="post"></form>
 </tags:master>

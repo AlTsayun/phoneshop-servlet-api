@@ -88,6 +88,7 @@ public class CartPageServlet extends HttpServlet {
                 .map(it -> new ProductInCart(productDao.getById(it.getProductId()).get(), it.getQuantity()))
                 .collect(Collectors.toList());
         request.setAttribute("productsInCart", productsInCart);
+        response.setHeader("Cache-Control", "private, no-store, no-cache, must-revalidate");
         request.getRequestDispatcher("/WEB-INF/pages/cart.jsp").forward(request, response);
 
     }

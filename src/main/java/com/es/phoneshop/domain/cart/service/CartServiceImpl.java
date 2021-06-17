@@ -2,21 +2,28 @@ package com.es.phoneshop.domain.cart.service;
 
 import com.es.phoneshop.domain.cart.model.Cart;
 import com.es.phoneshop.domain.cart.model.CartItem;
+import com.es.phoneshop.domain.cart.model.MiniCart;
+import com.es.phoneshop.domain.cart.model.ProductInCart;
 import com.es.phoneshop.domain.product.model.Product;
 import com.es.phoneshop.domain.product.persistence.ProductDao;
 import com.es.phoneshop.domain.product.service.ProductNotFoundException;
 import com.es.phoneshop.utils.sessionLock.SessionLockProvider;
-import com.es.phoneshop.utils.sessionLock.SessionLockWrapper;
 
 import javax.servlet.http.HttpSession;
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.Currency;
+import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.locks.Lock;
+import java.util.stream.Collectors;
 
 public class CartServiceImpl implements CartService {
 
     private final String cartSessionAttributeName;
     private final ProductDao productDao;
     private final SessionLockProvider sessionLockProvider;
+
     public CartServiceImpl(ProductDao productDao,
                            String cartSessionAttributeName,
                            SessionLockProvider sessionLockProvider) {
@@ -35,49 +42,50 @@ public class CartServiceImpl implements CartService {
                 throw new ProductQuantityTooLowException(quantity);
             }
 
-            CartItem oldItem = getCartItemById(cart, productId);
+            Optional<CartItem> oldItem = getCartItemById(cart, productId);
 
-            int adjustedQuantity = Math.addExact(quantity, oldItem == null ? 0 : oldItem.getQuantity());
+            int adjustedQuantity = Math.addExact(quantity, oldItem.map(CartItem::getQuantity).orElse(0));
             if (product.getStock() < adjustedQuantity) {
                 throw new ProductStockNotEnoughException();
             }
 
-            if (oldItem != null) {
-                oldItem.setQuantity(adjustedQuantity);
+            if (oldItem.isPresent()) {
+                oldItem.get().setQuantity(adjustedQuantity);
             } else {
                 cart.getItems().add(new CartItem(productId, adjustedQuantity));
             }
         });
     }
 
-    private CartItem getCartItemById(Cart cart, Long productId) {
-        CartItem oldItem = cart.getItems().stream()
+    private Optional<CartItem> getCartItemById(Cart cart, Long productId) {
+        return cart.getItems().stream()
                 .filter(it -> productId.equals(it.getProductId()))
-                .findFirst()
-                .orElse(null);
-        return oldItem;
+                .findFirst();
     }
 
     private void modifyCart(HttpSession session, Long productId, ModificationAction modificationAction) {
 
         Optional<Product> productOptional = productDao.getById(productId);
-        if (productOptional.isPresent()) {
-            Product product = productOptional.get();
-
-            Lock lock = sessionLockProvider.getLock(session).writeLock();
-            lock.lock();
-            try {
-                Cart cart = (Cart) session.getAttribute(cartSessionAttributeName);
-
-                modificationAction.apply(cart, product);
-
-            } finally {
-                lock.unlock();
-            }
-
-        } else {
+        if (!productOptional.isPresent()) {
             throw new ProductNotFoundException(productId.toString());
         }
+
+        Product product = productOptional.get();
+        Lock lock = sessionLockProvider.getLock(session).writeLock();
+        lock.lock();
+        try {
+            Cart cart = (Cart) session.getAttribute(cartSessionAttributeName);
+
+            if (cart == null) {
+                session.setAttribute(cartSessionAttributeName, cart = new Cart(new ArrayList<>()));
+            }
+
+            modificationAction.apply(cart, product);
+
+        } finally {
+            lock.unlock();
+        }
+
     }
 
     @Override
@@ -91,13 +99,13 @@ public class CartServiceImpl implements CartService {
                 throw new ProductQuantityTooLowException(quantity);
             }
 
-            CartItem oldItem = getCartItemById(cart, productId);
+            Optional<CartItem> oldItem = getCartItemById(cart, productId);
 
             if (product.getStock() < quantity) {
                 throw new ProductStockNotEnoughException();
             }
-            if (oldItem != null) {
-                oldItem.setQuantity(quantity);
+            if (oldItem.isPresent()) {
+                oldItem.get().setQuantity(quantity);
             } else {
                 throw new ProductNotFoundInCartException(productId.toString());
             }
@@ -115,14 +123,45 @@ public class CartServiceImpl implements CartService {
     }
 
     @Override
+    public MiniCart getMiniCart(HttpSession session) {
+        List<ProductInCart> products = getCart(session).getItems().stream()
+                .filter(it -> productDao.getById(it.getProductId()).isPresent())
+                .map(it -> new ProductInCart(productDao.getById(it.getProductId()).get(), it.getQuantity()))
+                .collect(Collectors.toList());
+        return new MiniCart(getTotalQuantity(products), getTotalCartPriceValue(products), getCurrency(products));
+    }
+
+    @Override
     public Cart getCart(HttpSession session) {
-        Lock lock = sessionLockProvider.getLock(session).readLock();
+        Lock lock = sessionLockProvider.getLock(session).writeLock();
         lock.lock();
         try {
-            return (Cart) session.getAttribute(cartSessionAttributeName);
+            Cart cart = (Cart) session.getAttribute(cartSessionAttributeName);
+
+            if (cart == null) {
+                session.setAttribute(cartSessionAttributeName, cart = new Cart(new ArrayList<>()));
+            }
+            return cart;
+
         } finally {
             lock.unlock();
         }
+    }
+
+    private int getTotalQuantity(List<ProductInCart> productsInCart) {
+        return productsInCart.stream()
+                .map(ProductInCart::getQuantity)
+                .reduce(0, Integer::sum);
+    }
+
+    private Currency getCurrency(List<ProductInCart> productsInCart) {
+        return Currency.getInstance("USD");
+    }
+
+    private BigDecimal getTotalCartPriceValue(List<ProductInCart> productsInCart) {
+        return productsInCart.stream()
+                .map(it -> it.getProduct().getActualPrice().getValue().multiply(new BigDecimal(it.getQuantity())))
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 
     private interface ModificationAction {

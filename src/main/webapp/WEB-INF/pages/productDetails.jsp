@@ -50,7 +50,6 @@
             <input type="number" name="quantity" value="1"/>
         </span>
         <button type="submit">Add to cart</button>
-        <input type="hidden" name="returnPath" value="/products/${product.id}">
     </form>
 
     <div>

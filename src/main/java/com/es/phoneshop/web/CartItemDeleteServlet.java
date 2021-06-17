@@ -30,9 +30,9 @@ public class CartItemDeleteServlet extends HttpServlet {
 
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws IOException {
-        String productIdStr = request.getPathInfo().substring(1);
+        String productIdStr = request.getParameter("productId");
+        String referer = request.getHeader("referer");
 
-        String returnPath = request.getParameter("returnPath");
         try {
             Long productId = Long.valueOf(productIdStr);
             cartService.deleteById(request.getSession(), productId);
@@ -43,6 +43,6 @@ public class CartItemDeleteServlet extends HttpServlet {
             messagesHandler.add(request, response, ERROR, "Product is not present in cart.");
         }
 
-        response.sendRedirect(request.getContextPath() + (returnPath != null ? returnPath : "/cart"));
+        response.sendRedirect(referer != null ? referer : "/cart");
     }
 }

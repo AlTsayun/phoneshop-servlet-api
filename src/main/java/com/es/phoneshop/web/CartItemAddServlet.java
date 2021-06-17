@@ -1,6 +1,5 @@
 package com.es.phoneshop.web;
 
-import com.es.phoneshop.domain.cart.model.Cart;
 import com.es.phoneshop.domain.cart.service.CartService;
 import com.es.phoneshop.domain.cart.service.ProductQuantityTooLowException;
 import com.es.phoneshop.domain.cart.service.ProductStockNotEnoughException;
@@ -32,7 +31,7 @@ public class CartItemAddServlet extends HttpServlet {
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws IOException {
         String productIdStr = request.getParameter("productId");
         String quantityStr = request.getParameter("quantity");
-        String returnPath = request.getParameter("returnPath");
+        String referer = request.getHeader("referer");
 
         try {
             int quantity;
@@ -53,6 +52,6 @@ public class CartItemAddServlet extends HttpServlet {
             messagesHandler.add(request, response, ERROR, "Quantity " + quantityStr + " is too low.");
         }
 
-        response.sendRedirect(request.getContextPath() + (returnPath != null ? returnPath : "/cart"));
+        response.sendRedirect(referer != null ? referer : "/cart");
     }
 }
