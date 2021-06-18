@@ -8,6 +8,7 @@ import com.es.phoneshop.domain.product.service.ViewedProductsHistoryService;
 import com.es.phoneshop.domain.product.service.ViewedProductsHistoryServiceImpl;
 import com.es.phoneshop.utils.LongIdGenerator;
 import com.es.phoneshop.utils.LongIdGeneratorImpl;
+import com.es.phoneshop.utils.sessionLock.SessionLockProvider;
 import com.es.phoneshop.utils.sessionLock.SessionLockWrapper;
 import com.es.phoneshop.utils.sessionLock.SessionLockWrapperImpl;
 
@@ -15,6 +16,12 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 public class ConfigurationImpl implements Configuration {
+
+    private final String CART_SESSION_ATTRIBUTE_NAME = ConfigurationImpl.class.getName() + ".cart";
+    private final String CART_SESSION_LOCK_ATTRIBUTE_NAME = ConfigurationImpl.class.getName() + ".cart.lock";
+
+    private final String VIEWED_PRODUCTS_SESSION_ATTRIBUTE_NAME = ConfigurationImpl.class.getName() + ".viewedProducts";
+    private final String VIEWED_PRODUCTS_SESSION_LOCK_ATTRIBUTE_NAME = ConfigurationImpl.class.getName() + ".viewedProducts.lock";
 
     private static final Lock instanceLock = new ReentrantLock();
     private static ConfigurationImpl instance;
@@ -80,7 +87,10 @@ public class ConfigurationImpl implements Configuration {
             cartServiceLock.lock();
             try {
                 if (cartService == null) {
-                    cartService = new CartServiceImpl(getProductDao(), getSessionLockWrapper());
+                    cartService = new CartServiceImpl(getProductDao(),
+                            CART_SESSION_ATTRIBUTE_NAME,
+                            getCartSessionLockProvider()
+                    );
                 }
             } finally {
                 cartServiceLock.unlock();
@@ -96,8 +106,9 @@ public class ConfigurationImpl implements Configuration {
             try {
                 if (viewedProductsHistoryService == null) {
                     viewedProductsHistoryService = new ViewedProductsHistoryServiceImpl(
-                            getSessionLockWrapper(),
                             getProductDao(),
+                            getViewedProductsSessionAttributeName(),
+                            getViewedProductsSessionLockProvider(),
                             3);
                 }
             } finally {
@@ -120,5 +131,25 @@ public class ConfigurationImpl implements Configuration {
             }
         }
         return sessionLockWrapper;
+    }
+
+    @Override
+    public SessionLockProvider getCartSessionLockProvider() {
+        return getSessionLockWrapper().getSessionLockProvider(CART_SESSION_LOCK_ATTRIBUTE_NAME);
+    }
+
+    @Override
+    public String getCartSessionAttributeName() {
+        return CART_SESSION_ATTRIBUTE_NAME;
+    }
+
+    @Override
+    public SessionLockProvider getViewedProductsSessionLockProvider() {
+        return getSessionLockWrapper().getSessionLockProvider(VIEWED_PRODUCTS_SESSION_LOCK_ATTRIBUTE_NAME);
+    }
+
+    @Override
+    public String getViewedProductsSessionAttributeName() {
+        return VIEWED_PRODUCTS_SESSION_ATTRIBUTE_NAME;
     }
 }

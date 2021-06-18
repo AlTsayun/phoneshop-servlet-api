@@ -19,10 +19,6 @@ import static org.junit.Assert.*;
 
 public class ArrayListProductDaoTest {
 
-    private ProductDao productDao;
-
-    private List<Product> initialProducts;
-
     @Before
     public void setup() {
         productDao = new ArrayListProductDao(new LongIdGeneratorImpl(0L));
@@ -167,4 +163,9 @@ public class ArrayListProductDaoTest {
         int resultSize = productDao.getAll().size();
         assertEquals(initialSize - threadsCount, resultSize);
     }
+
+
+    private ProductDao productDao;
+
+    private List<Product> initialProducts;
 }

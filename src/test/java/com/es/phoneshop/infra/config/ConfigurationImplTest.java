@@ -7,8 +7,6 @@ import static org.junit.Assert.assertEquals;
 
 public class ConfigurationImplTest{
 
-    private Configuration configuration;
-
     @Before
     public void setup(){
         configuration = ConfigurationImpl.getInstance();
@@ -33,4 +31,7 @@ public class ConfigurationImplTest{
     public void testGetViewedProductsHistoryService() {
         assertEquals(configuration.getViewedProductsHistoryService(), configuration.getViewedProductsHistoryService());
     }
+
+    private Configuration configuration;
+
 }

@@ -43,7 +43,7 @@
             </td>
         </tr>
     </table>
-    <form method="post" action="${pageContext.request.contextPath}/cart">
+    <form method="post" action="${pageContext.request.contextPath}/cart/add">
         <input type="hidden" name="productId" value="${product.id}"/>
         <span>
             Quantity:

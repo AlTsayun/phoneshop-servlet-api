@@ -2,43 +2,57 @@ package com.es.phoneshop.domain.product.service;
 
 import com.es.phoneshop.domain.product.persistence.ProductDao;
 import com.es.phoneshop.utils.sessionLock.SessionLockProvider;
-import com.es.phoneshop.utils.sessionLock.SessionLockWrapper;
 
 import javax.servlet.http.HttpSession;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.locks.Lock;
 import java.util.stream.IntStream;
 
 public class ViewedProductsHistoryServiceImpl implements ViewedProductsHistoryService {
 
-    public static final String VIEWED_PRODUCTS_HISTORY_SESSION_ATTRIBUTE =
-            ViewedProductsHistoryServiceImpl.class.getName() + ".viewedProductsHistory";
-
-    public static final String VIEWED_PRODUCTS_HISTORY_SESSION_LOCK_ATTRIBUTE =
-            ViewedProductsHistoryServiceImpl.class.getName() + ".viewedProductsHistory.lock";
+    private final String viewedProductsSessionAttributeName;
     private final SessionLockProvider sessionLockProvider;
     private final ProductDao productDao;
     private int historySize;
 
-    public ViewedProductsHistoryServiceImpl(SessionLockWrapper sessionLockWrapper, ProductDao productDao, int historySize) {
-        this.sessionLockProvider = sessionLockWrapper.getSessionLockProvider(VIEWED_PRODUCTS_HISTORY_SESSION_LOCK_ATTRIBUTE);
-        this.historySize = historySize;
+    public ViewedProductsHistoryServiceImpl(ProductDao productDao,
+                                            String viewedProductsSessionAttributeName,
+                                            SessionLockProvider sessionLockProvider,
+                                            int historySize) {
         this.productDao = productDao;
+        this.viewedProductsSessionAttributeName = viewedProductsSessionAttributeName;
+        this.sessionLockProvider = sessionLockProvider;
+        this.historySize = historySize;
     }
 
     @Override
-    public void add(List<Long> viewedProductsIds, Long productId) {
-        if (productDao.getById(productId).isPresent()) {
-            viewedProductsIds.stream()
-                    .filter(productId::equals)
-                    .findFirst()
-                    .ifPresent(viewedProductsIds::remove);
+    public void add(HttpSession session, Long productId) {
+        Lock lock = sessionLockProvider.getLock(session).writeLock();
+        lock.lock();
+        try {
 
-            readjustHistorySize(viewedProductsIds);
+            List<Long> productsIds = (List<Long>) session.getAttribute(viewedProductsSessionAttributeName);
 
-            viewedProductsIds.add(0, productId);
-        } else {
-            throw new ProductNotFoundException();
+            if (productsIds == null) {
+                session.setAttribute(viewedProductsSessionAttributeName, productsIds = new ArrayList<>());
+            }
+
+            if (productDao.getById(productId).isPresent()) {
+                productsIds.stream()
+                        .filter(productId::equals)
+                        .findFirst()
+                        .ifPresent(productsIds::remove);
+
+                readjustHistorySize(productsIds);
+
+                productsIds.add(0, productId);
+            } else {
+                throw new ProductNotFoundException(productId.toString());
+            }
+
+        } finally {
+            lock.unlock();
         }
     }
 
@@ -53,15 +67,16 @@ public class ViewedProductsHistoryServiceImpl implements ViewedProductsHistorySe
 
     @Override
     public List<Long> getProductIds(HttpSession session) {
-        sessionLockProvider.getLock(session).lock();
+        Lock lock = sessionLockProvider.getLock(session).writeLock();
+        lock.lock();
         try {
-            List<Long> products = (List<Long>) session.getAttribute(VIEWED_PRODUCTS_HISTORY_SESSION_ATTRIBUTE);
-            if (products == null) {
-                session.setAttribute(VIEWED_PRODUCTS_HISTORY_SESSION_ATTRIBUTE, products = new ArrayList<>());
+            List<Long> productsIds = (List<Long>) session.getAttribute(viewedProductsSessionAttributeName);
+            if (productsIds == null) {
+                session.setAttribute(viewedProductsSessionAttributeName, productsIds = new ArrayList<>());
             }
-            return products;
+            return productsIds;
         } finally {
-            sessionLockProvider.getLock(session).unlock();
+            lock.unlock();
         }
     }
 }

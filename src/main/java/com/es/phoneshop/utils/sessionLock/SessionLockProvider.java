@@ -2,7 +2,8 @@ package com.es.phoneshop.utils.sessionLock;
 
 import javax.servlet.http.HttpSession;
 import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReadWriteLock;
 
 public interface SessionLockProvider {
-    Lock getLock(HttpSession session);
+    ReadWriteLock getLock(HttpSession session);
 }

@@ -33,10 +33,9 @@ public class ArrayListProductDao implements ProductDao {
     public static List<Product> getSampleProducts() {
         List<Product> result = new ArrayList<>();
         Currency usd = Currency.getInstance("USD");
-        Currency eur = Currency.getInstance("EUR");
         result.add(new Product(null, "sgs", "Samsung Galaxy S", 100, "https://raw.githubusercontent.com/andrewosipenko/phoneshop-ext-images/master/manufacturer/Samsung/Samsung%20Galaxy%20S.jpg",
-                List.of(new ProductPrice(LocalDateTime.of(2000, Month.JANUARY, 1, 0, 0), new BigDecimal(100), eur),
-                        new ProductPrice(LocalDateTime.of(2001, Month.JANUARY, 1, 0, 0), new BigDecimal(200), eur))));
+                List.of(new ProductPrice(LocalDateTime.of(2000, Month.JANUARY, 1, 0, 0), new BigDecimal(100), usd),
+                        new ProductPrice(LocalDateTime.of(2001, Month.JANUARY, 1, 0, 0), new BigDecimal(200), usd))));
         result.add(new Product(null, "sgs2", "Samsung Galaxy S II", 0, "https://raw.githubusercontent.com/andrewosipenko/phoneshop-ext-images/master/manufacturer/Samsung/Samsung%20Galaxy%20S%20II.jpg",
                 List.of(new ProductPrice(LocalDateTime.of(2000, Month.JANUARY, 1, 0, 0), new BigDecimal(100), usd),
                         new ProductPrice(LocalDateTime.of(2001, Month.JANUARY, 1, 0, 0), new BigDecimal(110), usd))));
@@ -45,7 +44,7 @@ public class ArrayListProductDao implements ProductDao {
                         new ProductPrice(LocalDateTime.of(2001, Month.JANUARY, 1, 0, 0), new BigDecimal(290), usd))));
         result.add(new Product(null, "iphone", "Apple iPhone", 10, "https://raw.githubusercontent.com/andrewosipenko/phoneshop-ext-images/master/manufacturer/Apple/Apple%20iPhone.jpg",
                 List.of(new ProductPrice(LocalDateTime.of(2000, Month.JANUARY, 1, 0, 0), new BigDecimal(200), usd),
-                        new ProductPrice(LocalDateTime.of(2001, Month.JANUARY, 1, 0, 0), new BigDecimal(200), eur))));
+                        new ProductPrice(LocalDateTime.of(2001, Month.JANUARY, 1, 0, 0), new BigDecimal(200), usd))));
         result.add(new Product(null, "iphone6", "Apple iPhone 6", 30, "https://raw.githubusercontent.com/andrewosipenko/phoneshop-ext-images/master/manufacturer/Apple/Apple%20iPhone%206.jpg",
                 List.of(new ProductPrice(LocalDateTime.of(2000, Month.JANUARY, 1, 0, 0), new BigDecimal(1000), usd))));
         result.add(new Product(null, "htces4g", "HTC EVO Shift 4G", 3, "https://raw.githubusercontent.com/andrewosipenko/phoneshop-ext-images/master/manufacturer/HTC/HTC%20EVO%20Shift%204G.jpg",

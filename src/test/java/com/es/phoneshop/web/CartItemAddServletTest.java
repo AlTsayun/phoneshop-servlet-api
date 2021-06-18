@@ -5,9 +5,6 @@ import com.es.phoneshop.domain.cart.model.CartItem;
 import com.es.phoneshop.domain.cart.service.CartService;
 import com.es.phoneshop.domain.cart.service.ProductQuantityTooLowException;
 import com.es.phoneshop.domain.cart.service.ProductStockNotEnoughException;
-import com.es.phoneshop.domain.product.model.Product;
-import com.es.phoneshop.domain.product.model.ProductPrice;
-import com.es.phoneshop.domain.product.persistence.ProductDao;
 import com.es.phoneshop.domain.product.service.ProductNotFoundException;
 import com.es.phoneshop.infra.config.Configuration;
 import com.es.phoneshop.infra.config.ConfigurationImpl;
@@ -20,28 +17,21 @@ import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.junit.MockitoJUnitRunner;
 
-import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
-
 import java.io.IOException;
-import java.math.BigDecimal;
-import java.time.LocalDateTime;
-import java.time.Month;
-import java.util.Currency;
 import java.util.List;
 import java.util.Locale;
-import java.util.Optional;
 
+import static com.es.phoneshop.web.MessagesHandler.MessageType.ERROR;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
 @RunWith(MockitoJUnitRunner.class)
-public class CartServletTest extends TestCase{
+public class CartItemAddServletTest extends TestCase{
 
     @Mock
     private HttpServletRequest request;
@@ -58,9 +48,9 @@ public class CartServletTest extends TestCase{
     private HttpSession session;
 
     private MockedStatic<ConfigurationImpl> configurationStatic;
-    private CartServlet servlet;
+    private CartItemAddServlet servlet;
 
-    private String requestContextPath = "requestContextPath";
+    private String referer = "/referer";
 
     @Before
     public void setup() throws ServletException {
@@ -72,30 +62,18 @@ public class CartServletTest extends TestCase{
         Configuration configuration = setupConfiguration(cartService);
         servlet = setupServlet(configuration, messagesHandler, config);
 
-        when(request.getContextPath()).thenReturn(requestContextPath);
+        when(request.getHeader(eq("referer"))).thenReturn(referer);
     }
 
     private HttpSession setupSession() {
         return mock(HttpSession.class);
     }
 
-    private Product setupTestProduct() {
-        return new Product(0L, "code", "descrition", 1, null,
-                List.of(new ProductPrice(LocalDateTime.of(2000, Month.JANUARY, 1, 0, 0), new BigDecimal(100),
-                        Currency.getInstance("USD"))));
-    }
-
-    private ProductDao setupProductDao(Product product) {
-        ProductDao productDao = mock(ProductDao.class);
-        when(productDao.getById(product.getId())).thenReturn(Optional.of(product));
-        return productDao;
-    }
-
-    private CartServlet setupServlet(
+    private CartItemAddServlet setupServlet(
             Configuration configuration,
             MessagesHandler messagesHandler,
             ServletConfig config) throws ServletException {
-        CartServlet servlet = new CartServlet(configuration, messagesHandler);
+        CartItemAddServlet servlet = new CartItemAddServlet(configuration, messagesHandler);
         servlet.init(config);
         return servlet;
     }
@@ -115,9 +93,7 @@ public class CartServletTest extends TestCase{
     }
 
     private CartService setupCartService(Cart cart) {
-        CartService cartService = mock(CartService.class);
-        when(cartService.getCart(any())).thenReturn(cart);
-        return cartService;
+        return mock(CartService.class);
     }
 
     @After
@@ -129,7 +105,8 @@ public class CartServletTest extends TestCase{
     public void testDoPostNegativeQuantity() throws IOException {
         int quantity = -1;
         Long productId = 0L;
-        doThrow(new ProductQuantityTooLowException()).when(cartService).add(testCart, productId, quantity);
+
+        doThrow(new ProductQuantityTooLowException(quantity)).when(cartService).add(session, productId, quantity);
         when(request.getParameter("productId")).thenReturn(String.valueOf(productId));
         when(request.getParameter("quantity")).thenReturn(String.valueOf(quantity));
         when(request.getLocale()).thenReturn(Locale.ENGLISH);
@@ -139,14 +116,14 @@ public class CartServletTest extends TestCase{
 
         verify(cartService).add(any(), eq(productId), eq(quantity));
         verify(messagesHandler).add(any(), any(), eq(MessagesHandler.MessageType.ERROR), any());
-        verify(response).sendRedirect(eq(requestContextPath + "/products/" + productId));
+        verify(response).sendRedirect(eq(referer));
     }
     @Test
     public void testDoPostProductNotFound() throws IOException {
         int quantity = 1;
         Long productId = 1000L;
 
-        doThrow(new ProductNotFoundException()).when(cartService).add(testCart, productId, quantity);
+        doThrow(new ProductNotFoundException(productId.toString())).when(cartService).add(session, productId, quantity);
         when(request.getParameter("productId")).thenReturn(String.valueOf(productId));
         when(request.getParameter("quantity")).thenReturn(String.valueOf(quantity));
         when(request.getLocale()).thenReturn(Locale.ENGLISH);
@@ -156,14 +133,15 @@ public class CartServletTest extends TestCase{
 
         verify(cartService).add(any(), eq(productId), eq(quantity));
         verify(messagesHandler).add(any(), any(), eq(MessagesHandler.MessageType.ERROR), any());
-        verify(response).sendRedirect(eq(requestContextPath + "/products/" + productId));
+        verify(response).sendRedirect(eq(referer));
     }
 
     @Test
     public void testDoPostProductStockNotEnough() throws IOException {
         int quantity = 1000;
         Long productId = 0L;
-        doThrow(new ProductStockNotEnoughException()).when(cartService).add(testCart, productId, quantity);
+
+        doThrow(new ProductStockNotEnoughException()).when(cartService).add(session, productId, quantity);
         when(request.getParameter("productId")).thenReturn(String.valueOf(productId));
         when(request.getParameter("quantity")).thenReturn(String.valueOf(quantity));
         when(request.getLocale()).thenReturn(Locale.ENGLISH);
@@ -173,13 +151,14 @@ public class CartServletTest extends TestCase{
 
         verify(cartService).add(any(), eq(productId), eq(quantity));
         verify(messagesHandler).add(any(), any(), eq(MessagesHandler.MessageType.ERROR), any());
-        verify(response).sendRedirect(eq(requestContextPath + "/products/" + productId));
+        verify(response).sendRedirect(eq(referer));
     }
 
     @Test
     public void testDoPost() throws IOException {
         Long productId = 0L;
         int quantity = 1;
+
         when(request.getParameter("productId")).thenReturn(String.valueOf(productId));
         when(request.getParameter("quantity")).thenReturn(String.valueOf(quantity));
         when(request.getLocale()).thenReturn(Locale.ENGLISH);
@@ -189,7 +168,23 @@ public class CartServletTest extends TestCase{
 
         verify(cartService).add(any(), eq(productId), eq(quantity));
         verify(messagesHandler).add(any(), any(), eq(MessagesHandler.MessageType.SUCCESS), any());
-        verify(response).sendRedirect(eq(requestContextPath + "/products/" + productId));
+        verify(response).sendRedirect(eq(referer));
+    }
+
+    @Test
+    public void testDoPostQuantityTooBig() throws IOException {
+        Long productId = 0L;
+        String quantity = Long.toString(Integer.MAX_VALUE + 1L);
+
+        when(request.getLocale()).thenReturn(Locale.ENGLISH);
+
+        when(request.getParameter("productId")).thenReturn(productId.toString());
+        when(request.getParameter("quantity")).thenReturn(quantity);
+
+        servlet.doPost(request, response);
+
+        verify(messagesHandler, times(1)).add(any(), any(), eq(ERROR), any());
+        verify(response).sendRedirect(eq(referer));
     }
 
 }

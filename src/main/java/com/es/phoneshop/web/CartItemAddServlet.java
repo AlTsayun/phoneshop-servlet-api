@@ -1,6 +1,5 @@
 package com.es.phoneshop.web;
 
-import com.es.phoneshop.domain.cart.model.Cart;
 import com.es.phoneshop.domain.cart.service.CartService;
 import com.es.phoneshop.domain.cart.service.ProductQuantityTooLowException;
 import com.es.phoneshop.domain.cart.service.ProductStockNotEnoughException;
@@ -17,13 +16,13 @@ import java.text.ParseException;
 import static com.es.phoneshop.web.MessagesHandler.MessageType.ERROR;
 import static com.es.phoneshop.web.MessagesHandler.MessageType.SUCCESS;
 
-public class CartServlet extends HttpServlet {
+public class CartItemAddServlet extends HttpServlet {
 
     private final CartService cartService;
 
     private final MessagesHandler messagesHandler;
 
-    public CartServlet(Configuration configuration, MessagesHandler messagesHandler) {
+    public CartItemAddServlet(Configuration configuration, MessagesHandler messagesHandler) {
         this.cartService = configuration.getCartService();
         this.messagesHandler = messagesHandler;
     }
@@ -32,6 +31,7 @@ public class CartServlet extends HttpServlet {
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws IOException {
         String productIdStr = request.getParameter("productId");
         String quantityStr = request.getParameter("quantity");
+        String referer = request.getHeader("referer");
 
         try {
             int quantity;
@@ -39,8 +39,7 @@ public class CartServlet extends HttpServlet {
 
             Long productId = Long.valueOf(productIdStr);
 
-            Cart cart = cartService.getCart(request.getSession());
-            cartService.add(cart, productId, quantity);
+            cartService.add(request.getSession(), productId, quantity);
 
             messagesHandler.add(request, response, SUCCESS, "Product successfully added to your cart.");
         } catch (ParseException | ArithmeticException e) {
@@ -53,6 +52,6 @@ public class CartServlet extends HttpServlet {
             messagesHandler.add(request, response, ERROR, "Quantity " + quantityStr + " is too low.");
         }
 
-        response.sendRedirect(request.getContextPath() + "/products/" + productIdStr);
+        response.sendRedirect(referer != null ? referer : "/cart");
     }
 }

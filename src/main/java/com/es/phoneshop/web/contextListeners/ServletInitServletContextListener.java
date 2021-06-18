@@ -29,18 +29,30 @@ public class ServletInitServletContextListener implements ServletContextListener
                     new ProductDetailsPageServlet(configuration, errorHandler));
             productDetails.addMapping("/products/*");
 
-
             ServletRegistration.Dynamic productPricesHistory = servletContext.addServlet(
                     "productPricesHistory",
                     new ProductPricesHistoryServlet(configuration, errorHandler));
             productPricesHistory.addMapping("/product-prices-history/*");
 
+            ServletRegistration.Dynamic cartItemAddServlet = servletContext.addServlet(
+                    "cartItemAdd",
+                    new CartItemAddServlet(configuration, messagesHandler));
+            cartItemAddServlet.addMapping("/cart/add");
 
             ServletRegistration.Dynamic cart = servletContext.addServlet(
                     "cart",
-                    new CartServlet(configuration, messagesHandler));
+                    new CartPageServlet(configuration, messagesHandler));
             cart.addMapping("/cart");
 
+            ServletRegistration.Dynamic cartItemDeleteServlet = servletContext.addServlet(
+                    "cartItemDelete",
+                    new CartItemDeleteServlet(configuration, messagesHandler));
+            cartItemDeleteServlet.addMapping("/cart/delete/*");
+
+            ServletRegistration.Dynamic miniCartServlet = servletContext.addServlet(
+                    "miniCart",
+                    new MiniCartServlet(configuration, messagesHandler));
+            miniCartServlet.addMapping("/cart/minicart");
         }
     }
 

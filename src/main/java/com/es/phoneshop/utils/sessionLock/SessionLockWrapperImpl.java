@@ -2,7 +2,9 @@ package com.es.phoneshop.utils.sessionLock;
 
 import javax.servlet.http.HttpSession;
 import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 public class SessionLockWrapperImpl implements SessionLockWrapper {
 
@@ -11,13 +13,13 @@ public class SessionLockWrapperImpl implements SessionLockWrapper {
     @Override
     public SessionLockProvider getSessionLockProvider(String lockAttributeName) {
         return (session) -> {
-            Lock lock = (Lock) session.getAttribute(lockAttributeName);
+            ReadWriteLock lock = (ReadWriteLock) session.getAttribute(lockAttributeName);
             if (lock == null) {
                 globalDistributionLock.lock();
                 try {
-                    lock = (Lock) session.getAttribute(lockAttributeName);
+                    lock = (ReadWriteLock) session.getAttribute(lockAttributeName);
                     if (lock == null) {
-                        lock = new ReentrantLock();
+                        lock = new ReentrantReadWriteLock();
                         session.setAttribute(lockAttributeName, lock);
                     }
                 } finally {

@@ -6,8 +6,8 @@
 
 <jsp:useBean id="productIdStr" type="java.lang.String" scope="request"/>
 <tags:master pageTitle="Product not found!">
-  <p>
-    Product with id "${fn:escapeXml(productIdStr)}" is not found!
-    Try to start from our <a href="${pageContext.servletContext.contextPath}/products">products page</a>.
-  </p>
+    <p>
+        Product with id "${fn:escapeXml(productIdStr)}" is not found!
+        Try to start from our <a href="${pageContext.servletContext.contextPath}/products">products page</a>.
+    </p>
 </tags:master>

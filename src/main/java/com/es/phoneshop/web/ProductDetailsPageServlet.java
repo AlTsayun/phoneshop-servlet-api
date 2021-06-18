@@ -2,7 +2,6 @@ package com.es.phoneshop.web;
 
 import com.es.phoneshop.domain.cart.model.ProductInCart;
 import com.es.phoneshop.domain.cart.service.CartService;
-import com.es.phoneshop.domain.cart.service.CartServiceImpl;
 import com.es.phoneshop.domain.product.model.Product;
 import com.es.phoneshop.domain.product.persistence.ProductDao;
 import com.es.phoneshop.domain.product.service.ViewedProductsHistoryService;
@@ -18,7 +17,6 @@ import java.util.NoSuchElementException;
 import java.util.stream.Collectors;
 
 public class ProductDetailsPageServlet extends HttpServlet {
-
 
     private CartService cartService;
     private Configuration configuration;
@@ -68,8 +66,7 @@ public class ProductDetailsPageServlet extends HttpServlet {
     }
 
     private void addViewedProduct(HttpServletRequest request, HttpServletResponse response, Long productId) {
-        List<Long> viewedProductsIds = viewedProductsHistoryService.getProductIds(request.getSession());
-        viewedProductsHistoryService.add(viewedProductsIds, productId);
+        viewedProductsHistoryService.add(request.getSession(), productId);
     }
 
     private void setViewedProductsAttribute(HttpServletRequest request, HttpServletResponse response){

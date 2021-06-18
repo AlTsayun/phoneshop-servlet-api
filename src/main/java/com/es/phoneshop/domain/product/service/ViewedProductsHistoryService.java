@@ -6,6 +6,6 @@ import javax.servlet.http.HttpSession;
 import java.util.List;
 
 public interface ViewedProductsHistoryService {
-    void add(List<Long> viewedProductsIds, Long productId);
+    void add(HttpSession session, Long productId);
     List<Long> getProductIds(HttpSession session);
 }
