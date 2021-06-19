@@ -2,22 +2,17 @@ package com.es.phoneshop.web;
 
 import com.es.phoneshop.domain.cart.model.Cart;
 import com.es.phoneshop.domain.cart.model.CartItem;
-import com.es.phoneshop.domain.cart.model.ProductInCart;
 import com.es.phoneshop.domain.cart.service.CartService;
-import com.es.phoneshop.domain.cart.service.ProductNotFoundInCartException;
 import com.es.phoneshop.domain.product.model.Product;
 import com.es.phoneshop.domain.product.model.ProductPrice;
 import com.es.phoneshop.domain.product.persistence.ProductDao;
 import com.es.phoneshop.infra.config.Configuration;
 import com.es.phoneshop.infra.config.ConfigurationImpl;
-import com.es.phoneshop.web.MessagesHandler.MessageType;
 import junit.framework.TestCase;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.junit.MockitoJUnitRunner;
@@ -32,14 +27,15 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.Month;
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.ArrayList;
+import java.util.Currency;
+import java.util.List;
+import java.util.Optional;
 
-import static com.es.phoneshop.web.MessagesHandler.MessageType.*;
+import static com.es.phoneshop.web.MessagesHandler.MessageType.ERROR;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
-import static org.mockito.Mockito.verify;
 
 @RunWith(MockitoJUnitRunner.class)
 public class MiniCartServletTest extends TestCase {

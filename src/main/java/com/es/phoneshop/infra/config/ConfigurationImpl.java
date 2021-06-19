@@ -2,6 +2,10 @@ package com.es.phoneshop.infra.config;
 
 import com.es.phoneshop.domain.cart.service.CartService;
 import com.es.phoneshop.domain.cart.service.CartServiceImpl;
+import com.es.phoneshop.domain.order.persistence.ArrayListOrderDao;
+import com.es.phoneshop.domain.order.persistence.OrderDao;
+import com.es.phoneshop.domain.order.service.OrderService;
+import com.es.phoneshop.domain.order.service.OrderServiceImpl;
 import com.es.phoneshop.domain.product.persistence.ArrayListProductDao;
 import com.es.phoneshop.domain.product.persistence.ProductDao;
 import com.es.phoneshop.domain.product.service.ViewedProductsHistoryService;
@@ -30,11 +34,16 @@ public class ConfigurationImpl implements Configuration {
     private final Lock cartServiceLock = new ReentrantLock();
     private final Lock viewedProductsHistoryServiceLock = new ReentrantLock();
     private final Lock sessionLockWrapperLock = new ReentrantLock();
+    private final Lock orderDaoLock = new ReentrantLock();
+    private final Lock orderServiceLock = new ReentrantLock();
+
     private ProductDao productDao;
+    private OrderDao orderDao;
     private LongIdGenerator longIdGenerator;
     private CartService cartService;
     private ViewedProductsHistoryService viewedProductsHistoryService;
     private SessionLockWrapper sessionLockWrapper;
+    private OrderService orderService;
 
     private ConfigurationImpl() {
     }
@@ -64,6 +73,21 @@ public class ConfigurationImpl implements Configuration {
             }
         }
         return productDao;
+    }
+
+    @Override
+    public OrderDao getOrderDao() {
+        if (orderDao == null) {
+            orderDaoLock.lock();
+            try {
+                if (orderDao == null) {
+                    orderDao = new ArrayListOrderDao(getLongIdGenerator());
+                }
+            } finally {
+                orderDaoLock.unlock();
+            }
+        }
+        return orderDao;
     }
 
     @Override
@@ -97,6 +121,21 @@ public class ConfigurationImpl implements Configuration {
             }
         }
         return cartService;
+    }
+
+    @Override
+    public OrderService getOrderService() {
+        if (orderService == null) {
+            orderServiceLock.lock();
+            try {
+                if (orderService == null) {
+                    orderService = new OrderServiceImpl(getProductDao(), getOrderDao(), getCartService());
+                }
+            } finally {
+                orderServiceLock.unlock();
+            }
+        }
+        return orderService;
     }
 
     @Override

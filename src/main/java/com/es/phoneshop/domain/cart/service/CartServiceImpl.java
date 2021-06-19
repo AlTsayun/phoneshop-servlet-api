@@ -2,8 +2,8 @@ package com.es.phoneshop.domain.cart.service;
 
 import com.es.phoneshop.domain.cart.model.Cart;
 import com.es.phoneshop.domain.cart.model.CartItem;
+import com.es.phoneshop.domain.cart.model.DisplayCartItem;
 import com.es.phoneshop.domain.cart.model.MiniCart;
-import com.es.phoneshop.domain.cart.model.ProductInCart;
 import com.es.phoneshop.domain.product.model.Product;
 import com.es.phoneshop.domain.product.persistence.ProductDao;
 import com.es.phoneshop.domain.product.service.ProductNotFoundException;
@@ -124,9 +124,9 @@ public class CartServiceImpl implements CartService {
 
     @Override
     public MiniCart getMiniCart(HttpSession session) {
-        List<ProductInCart> products = getCart(session).getItems().stream()
+        List<DisplayCartItem> products = getCart(session).getItems().stream()
                 .filter(it -> productDao.getById(it.getProductId()).isPresent())
-                .map(it -> new ProductInCart(productDao.getById(it.getProductId()).get(), it.getQuantity()))
+                .map(it -> new DisplayCartItem(productDao.getById(it.getProductId()).get(), it.getQuantity()))
                 .collect(Collectors.toList());
         return new MiniCart(getTotalQuantity(products), getTotalCartPriceValue(products), getCurrency(products));
     }
@@ -148,17 +148,17 @@ public class CartServiceImpl implements CartService {
         }
     }
 
-    private int getTotalQuantity(List<ProductInCart> productsInCart) {
+    private int getTotalQuantity(List<DisplayCartItem> productsInCart) {
         return productsInCart.stream()
-                .map(ProductInCart::getQuantity)
+                .map(DisplayCartItem::getQuantity)
                 .reduce(0, Integer::sum);
     }
 
-    private Currency getCurrency(List<ProductInCart> productsInCart) {
+    public Currency getCurrency(List<DisplayCartItem> productsInCart) {
         return Currency.getInstance("USD");
     }
 
-    private BigDecimal getTotalCartPriceValue(List<ProductInCart> productsInCart) {
+    private BigDecimal getTotalCartPriceValue(List<DisplayCartItem> productsInCart) {
         return productsInCart.stream()
                 .map(it -> it.getProduct().getActualPrice().getValue().multiply(new BigDecimal(it.getQuantity())))
                 .reduce(BigDecimal.ZERO, BigDecimal::add);

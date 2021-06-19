@@ -3,8 +3,8 @@ package com.es.phoneshop.domain.product.persistence;
 import com.es.phoneshop.domain.common.model.SortingOrder;
 import com.es.phoneshop.domain.product.model.Product;
 import com.es.phoneshop.domain.product.model.ProductPrice;
-import com.es.phoneshop.domain.product.model.ProductsRequest;
 import com.es.phoneshop.domain.product.model.ProductSortingCriteria;
+import com.es.phoneshop.domain.product.model.ProductsRequest;
 import com.es.phoneshop.utils.LongIdGenerator;
 
 import java.math.BigDecimal;
@@ -158,11 +158,11 @@ public class ArrayListProductDao implements ProductDao {
             if (product.getId() != null) {
                 int insertingPosition = IntStream.range(0, products.size())
                         .filter(i -> product.getId().equals(products.get(i).getId()))
-                        .findFirst().orElseThrow(ProductPresistenceException::new);
+                        .findFirst().orElseThrow(ProductPersistenceException::new);
 
                 products.set(insertingPosition, product);
             } else {
-                throw new ProductPresistenceException();
+                throw new ProductPersistenceException();
             }
 
         } finally {
@@ -182,7 +182,7 @@ public class ArrayListProductDao implements ProductDao {
             }
             return productId;
         } else {
-            throw new ProductPresistenceException();
+            throw new ProductPersistenceException();
         }
     }
 
@@ -192,7 +192,7 @@ public class ArrayListProductDao implements ProductDao {
         try {
             int foundIndex = IntStream.range(0, products.size())
                     .filter(i -> id.equals(products.get(i).getId()))
-                    .findFirst().orElseThrow(ProductPresistenceException::new);
+                    .findFirst().orElseThrow(ProductPersistenceException::new);
             products.remove(foundIndex);
         } finally {
             lock.writeLock().unlock();

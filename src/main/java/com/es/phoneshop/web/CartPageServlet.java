@@ -1,6 +1,6 @@
 package com.es.phoneshop.web;
 
-import com.es.phoneshop.domain.cart.model.ProductInCart;
+import com.es.phoneshop.domain.cart.model.DisplayCartItem;
 import com.es.phoneshop.domain.cart.service.CartService;
 import com.es.phoneshop.domain.cart.service.ProductQuantityTooLowException;
 import com.es.phoneshop.domain.cart.service.ProductStockNotEnoughException;
@@ -77,15 +77,15 @@ public class CartPageServlet extends HttpServlet {
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        List<ProductInCart> productsInCart = cartService.getCart(request.getSession()).getItems().stream()
+        List<DisplayCartItem> productsInCart = cartService.getCart(request.getSession()).getItems().stream()
                 .filter(it -> isPresentInDao(it.getProductId(), id ->
-                    messagesHandler.add(
-                            request,
-                            response,
-                            ERROR,
-                            "Item wih id " + it.getProductId() + "is not present in catalog and hence deleted from cart.")
+                        messagesHandler.add(
+                                request,
+                                response,
+                                ERROR,
+                                "Item wih id " + it.getProductId() + "is not present in catalog and hence deleted from cart.")
                 ))
-                .map(it -> new ProductInCart(productDao.getById(it.getProductId()).get(), it.getQuantity()))
+                .map(it -> new DisplayCartItem(productDao.getById(it.getProductId()).get(), it.getQuantity()))
                 .collect(Collectors.toList());
         request.setAttribute("productsInCart", productsInCart);
         response.setHeader("Cache-Control", "private, no-store, no-cache, must-revalidate");

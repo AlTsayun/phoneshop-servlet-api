@@ -10,7 +10,8 @@ import org.junit.Before;
 import org.junit.Test;
 
 import java.math.BigDecimal;
-import java.time.*;
+import java.time.LocalDateTime;
+import java.time.Month;
 import java.util.Currency;
 import java.util.List;
 
@@ -92,13 +93,13 @@ public class ArrayListProductDaoTest {
         assertFalse(productDao.getById(id).isPresent());
     }
 
-    @Test(expected = ProductPresistenceException.class)
+    @Test(expected = ProductPersistenceException.class)
     public void testDeleteProductWrongId() {
         Long id = 500L;
         productDao.delete(id);
     }
 
-    @Test(expected = ProductPresistenceException.class)
+    @Test(expected = ProductPersistenceException.class)
     public void testUpdateProductWrongId() {
         Long id = 500L;
         Product toUpdate = new Product(id, "code", "description", 10, "",

@@ -4,10 +4,7 @@ import com.es.phoneshop.infra.config.Configuration;
 import com.es.phoneshop.infra.config.ConfigurationImpl;
 import com.es.phoneshop.web.*;
 
-import javax.servlet.ServletContext;
-import javax.servlet.ServletContextEvent;
-import javax.servlet.ServletContextListener;
-import javax.servlet.ServletRegistration;
+import javax.servlet.*;
 
 public class ServletInitServletContextListener implements ServletContextListener {
     @Override
@@ -19,41 +16,65 @@ public class ServletInitServletContextListener implements ServletContextListener
             ErrorHandler errorHandler = new ErrorHandler();
             MessagesHandler messagesHandler = new MessagesHandler();
 
-            ServletRegistration.Dynamic productList = servletContext.addServlet(
+            registerServlet(
+                    servletContext,
                     "productList",
+                    "/products",
                     new ProductListPageServlet(configuration, errorHandler));
-            productList.addMapping("/products");
 
-            ServletRegistration.Dynamic productDetails = servletContext.addServlet(
+            registerServlet(
+                    servletContext,
                     "productDetails",
+                    "/products/*",
                     new ProductDetailsPageServlet(configuration, errorHandler));
-            productDetails.addMapping("/products/*");
 
-            ServletRegistration.Dynamic productPricesHistory = servletContext.addServlet(
+            registerServlet(
+                    servletContext,
                     "productPricesHistory",
+                    "/product-prices-history/*",
                     new ProductPricesHistoryServlet(configuration, errorHandler));
-            productPricesHistory.addMapping("/product-prices-history/*");
 
-            ServletRegistration.Dynamic cartItemAddServlet = servletContext.addServlet(
+            registerServlet(
+                    servletContext,
                     "cartItemAdd",
+                    "/cart/add",
                     new CartItemAddServlet(configuration, messagesHandler));
-            cartItemAddServlet.addMapping("/cart/add");
 
-            ServletRegistration.Dynamic cart = servletContext.addServlet(
+            registerServlet(
+                    servletContext,
                     "cart",
+                    "/cart",
                     new CartPageServlet(configuration, messagesHandler));
-            cart.addMapping("/cart");
 
-            ServletRegistration.Dynamic cartItemDeleteServlet = servletContext.addServlet(
+            registerServlet(
+                    servletContext,
                     "cartItemDelete",
+                    "/cart/delete/*",
                     new CartItemDeleteServlet(configuration, messagesHandler));
-            cartItemDeleteServlet.addMapping("/cart/delete/*");
 
-            ServletRegistration.Dynamic miniCartServlet = servletContext.addServlet(
+            registerServlet(
+                    servletContext,
                     "miniCart",
+                    "/cart/minicart",
                     new MiniCartServlet(configuration, messagesHandler));
-            miniCartServlet.addMapping("/cart/minicart");
+
+            registerServlet(
+                    servletContext,
+                    "checkout",
+                    "/checkout",
+                    new CheckoutPageServlet(configuration, messagesHandler));
+
+            registerServlet(
+                    servletContext,
+                    "orderOverview",
+                    "/order/overview/*",
+                    new OrderOverviewPageServlet(configuration));
         }
+    }
+
+    private void registerServlet(ServletContext context, String name, String mapping, Servlet servlet) {
+        ServletRegistration.Dynamic servletRegistration = context.addServlet(name, servlet);
+        servletRegistration.addMapping(mapping);
     }
 
     @Override

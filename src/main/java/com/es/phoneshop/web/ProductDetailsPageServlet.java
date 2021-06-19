@@ -1,6 +1,6 @@
 package com.es.phoneshop.web;
 
-import com.es.phoneshop.domain.cart.model.ProductInCart;
+import com.es.phoneshop.domain.cart.model.DisplayCartItem;
 import com.es.phoneshop.domain.cart.service.CartService;
 import com.es.phoneshop.domain.product.model.Product;
 import com.es.phoneshop.domain.product.persistence.ProductDao;
@@ -55,11 +55,11 @@ public class ProductDetailsPageServlet extends HttpServlet {
     }
 
     private void setProductsInCartAttribute(HttpServletRequest request, HttpServletResponse response){
-        List<ProductInCart> productsInCart;
+        List<DisplayCartItem> productsInCart;
 
         productsInCart = cartService.getCart(request.getSession()).getItems().stream()
                 .filter(it -> productDao.getById(it.getProductId()).isPresent())
-                .map(it -> new ProductInCart(productDao.getById(it.getProductId()).get(), it.getQuantity()))
+                .map(it -> new DisplayCartItem(productDao.getById(it.getProductId()).get(), it.getQuantity()))
                 .collect(Collectors.toList());
 
         request.setAttribute("productsInCart", productsInCart);

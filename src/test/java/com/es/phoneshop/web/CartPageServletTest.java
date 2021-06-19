@@ -2,7 +2,7 @@ package com.es.phoneshop.web;
 
 import com.es.phoneshop.domain.cart.model.Cart;
 import com.es.phoneshop.domain.cart.model.CartItem;
-import com.es.phoneshop.domain.cart.model.ProductInCart;
+import com.es.phoneshop.domain.cart.model.DisplayCartItem;
 import com.es.phoneshop.domain.cart.service.CartService;
 import com.es.phoneshop.domain.cart.service.ProductQuantityTooLowException;
 import com.es.phoneshop.domain.cart.service.ProductStockNotEnoughException;
@@ -72,7 +72,7 @@ public class CartPageServletTest extends TestCase {
     private final String requestContextPath = "requestContextPath";
 
     @Captor
-    private ArgumentCaptor<List<ProductInCart>> productInCartArgumentCaptor;
+    private ArgumentCaptor<List<DisplayCartItem>> productInCartArgumentCaptor;
 
     @Before
     public void setup() throws ServletException {
@@ -275,14 +275,14 @@ public class CartPageServletTest extends TestCase {
     @Test
     public void testDoGet() throws IOException, ServletException {
 
-        List<ProductInCart> expectedProducts = testCart.getItems().stream()
-                .map(it -> new ProductInCart(testProducts.get(0), it.getQuantity()))
+        List<DisplayCartItem> expectedProducts = testCart.getItems().stream()
+                .map(it -> new DisplayCartItem(testProducts.get(0), it.getQuantity()))
                 .collect(Collectors.toList());
 
         servlet.doGet(request, response);
 
         verify(request).setAttribute(eq("productsInCart"), productInCartArgumentCaptor.capture());
-        List<ProductInCart> capturedProductsInCart = productInCartArgumentCaptor.getValue();
+        List<DisplayCartItem> capturedProductsInCart = productInCartArgumentCaptor.getValue();
         assertEquals(expectedProducts.size(), capturedProductsInCart.size());
         capturedProductsInCart.forEach(it -> assertTrue(expectedProducts.contains(it)));
         verify(requestDispatcher).forward(request, response);
@@ -302,7 +302,7 @@ public class CartPageServletTest extends TestCase {
         verify(messagesHandler, times(1)).add(any(), any(), eq(ERROR), any());
 
         verify(request).setAttribute(eq("productsInCart"), productInCartArgumentCaptor.capture());
-        List<ProductInCart> capturedProductsInCart = productInCartArgumentCaptor.getValue();
+        List<DisplayCartItem> capturedProductsInCart = productInCartArgumentCaptor.getValue();
         assertEquals(illegalCartItems.size() - 1, capturedProductsInCart.size());
         verify(requestDispatcher).forward(request, response);
 

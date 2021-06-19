@@ -22,36 +22,41 @@
                 <td></td>
             </tr>
             </thead>
-            <c:forEach var="productInCart" items="${productsInCart}">
+            <c:forEach var="item" items="${productsInCart}">
                 <tr>
                     <td>
-                        <img class="product-tile" src="${productInCart.product.imageUrl}" alt="product image">
+                        <img class="product-tile" src="${item.product.imageUrl}" alt="product image">
                     </td>
                     <td>
-                        <a href="${pageContext.servletContext.contextPath}/products/${productInCart.product.id}">
-                                ${productInCart.product.description}
+                        <a href="${pageContext.servletContext.contextPath}/products/${item.product.id}">
+                                ${item.product.description}
                         </a>
                     </td>
                     <td class="price">
-                        <c:set var="price" value="${productInCart.product.getActualPrice()}" scope="application"/>
-                        <a href="${pageContext.servletContext.contextPath}/product-prices-history/${productInCart.product.id}">
+                        <c:set var="price" value="${item.product.getActualPrice()}" scope="application"/>
+                        <a href="${pageContext.servletContext.contextPath}/product-prices-history/${item.product.id}">
                             <fmt:formatNumber value="${price.value}" type="currency"
                                               currencySymbol="${price.currency.symbol}"/>
                         </a>
                     </td>
                     <td>
-                        <fmt:formatNumber value="${productInCart.quantity}" var="quantity"/>
+                        <fmt:formatNumber value="${item.quantity}" var="quantity"/>
                         <input name="quantity" value="${quantity}"/>
-                        <input type="hidden" name="productId" value="${productInCart.product.id}"/>
+                        <input type="hidden" name="productId" value="${item.product.id}"/>
                     </td>
                     <td>
-                        <button formaction="${pageContext.servletContext.contextPath}/cart/delete?productId=${productInCart.product.id}">
+                        <button formaction="${pageContext.servletContext.contextPath}/cart/delete?productId=${item.product.id}">
                             Delete
                         </button>
                     </td>
                 </tr>
             </c:forEach>
         </table>
-        <button type="submit">Update</button>
+        <c:if test="${not empty productsInCart}">
+            <button type="submit">Update</button>
+            <button formaction="${pageContext.servletContext.contextPath}/checkout" formmethod="get">
+                Checkout
+            </button>
+        </c:if>
     </form>
 </tags:master>

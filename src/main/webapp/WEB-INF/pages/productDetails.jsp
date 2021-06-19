@@ -62,8 +62,8 @@
             <c:otherwise>
                 <table>
                     <tr>
-                        <c:forEach var="productInCart" items="${productsInCart}">
-                            <c:set var="product" value="${productInCart.product}" scope="page"/>
+                        <c:forEach var="item" items="${productsInCart}">
+                            <c:set var="product" value="${item.product}" scope="page"/>
                             <td>
                                 <img class="product-tile" src="${product.imageUrl}" alt="product image"/>
                                 <div>
@@ -71,7 +71,7 @@
                                             ${product.description}
                                     </a>
                                 </div>
-                                <p>Quantity: ${productInCart.quantity}</p>
+                                <p>Quantity: ${item.quantity}</p>
                             </td>
                         </c:forEach>
                     </tr>
