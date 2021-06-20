@@ -148,7 +148,7 @@ public class ConfigurationImpl implements Configuration {
             orderServiceLock.lock();
             try {
                 if (orderService == null) {
-                    orderService = new OrderServiceImpl(getProductDao(), getOrderDao(), getCartService());
+                    orderService = new OrderServiceImpl(getProductDao(), getOrderDao());
                 }
             } finally {
                 orderServiceLock.unlock();

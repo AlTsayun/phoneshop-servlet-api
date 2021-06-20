@@ -99,7 +99,6 @@ public class CartPageServletTest extends TestCase {
         return new Cart(List.of(new CartItem(0L, 10)));
     }
 
-
     private HttpSession setupSession() {
         return mock(HttpSession.class);
     }

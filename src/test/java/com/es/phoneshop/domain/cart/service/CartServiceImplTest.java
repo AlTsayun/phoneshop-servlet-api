@@ -23,6 +23,7 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
@@ -103,14 +104,20 @@ public class CartServiceImplTest {
 
 
     @Test
-    public void testGetCart(){
+    public void testGetCart() {
         Cart resultCart = cartService.get(session);
         assertEquals(testCart, resultCart);
         verify(session).getAttribute(eq(cartSessionAttributeName));
     }
 
+    @Test
+    public void testClear() {
+        cartService.clear(session);
+        assertTrue(testCart.getItems().isEmpty());
+    }
 
-    private SessionLockProvider setupSessionLockProvider(){
+
+    private SessionLockProvider setupSessionLockProvider() {
         SessionLockProvider sessionLockProvider = mock(SessionLockProvider.class);
         ReadWriteLock readWriteLock = mock(ReadWriteLock.class);
         Lock readLock = mock(Lock.class);

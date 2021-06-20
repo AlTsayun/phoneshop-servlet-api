@@ -1,7 +1,7 @@
 package com.es.phoneshop.domain.order.service;
 
 import com.es.phoneshop.domain.cart.model.Cart;
-import com.es.phoneshop.domain.cart.service.CartService;
+import com.es.phoneshop.domain.cart.model.CartItem;
 import com.es.phoneshop.domain.common.model.PaymentMethod;
 import com.es.phoneshop.domain.common.model.Price;
 import com.es.phoneshop.domain.order.model.ContactDetails;
@@ -21,18 +21,20 @@ public class OrderServiceImpl implements OrderService {
 
     private ProductDao productDao;
     private OrderDao orderDao;
-    private CartService cartService;
 
-    public OrderServiceImpl(ProductDao productDao, OrderDao orderDao, CartService cartService) {
+    public OrderServiceImpl(ProductDao productDao, OrderDao orderDao) {
         this.productDao = productDao;
         this.orderDao = orderDao;
-        this.cartService = cartService;
     }
 
     @Override
     public UUID order(Cart cart, DeliveryDetails deliveryDetails, ContactDetails contactDetails, PaymentMethod paymentMethod) {
         UUID secureId = UUID.randomUUID();
-        List<OrderItem> items = cart.getItems().stream()
+        List<CartItem> cartItems = cart.getItems();
+        if (cartItems.isEmpty()) {
+            throw new CartEmptyException();
+        }
+        List<OrderItem> items = cartItems.stream()
                 .filter(it -> productDao.getById(it.getProductId()).isPresent())
                 .map(it -> {
                     Product item = productDao.getById(it.getProductId()).get();

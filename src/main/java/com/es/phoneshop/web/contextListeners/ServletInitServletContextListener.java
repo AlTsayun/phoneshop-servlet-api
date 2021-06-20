@@ -58,7 +58,7 @@ public class ServletInitServletContextListener implements ServletContextListener
                     servletContext,
                     "miniCart",
                     "/cart/minicart",
-                    new MiniCartServlet(configuration, messagesHandler));
+                    new MiniCartServlet(configuration));
 
             registerServlet(
                     servletContext,

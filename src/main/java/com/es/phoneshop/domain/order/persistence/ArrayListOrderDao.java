@@ -50,16 +50,6 @@ public class ArrayListOrderDao implements OrderDao {
     }
 
     @Override
-    public List<Order> getAll() {
-        lock.readLock().lock();
-        try {
-            return new ArrayList<>(items);
-        } finally {
-            lock.readLock().unlock();
-        }
-    }
-
-    @Override
     public Long save(Order order) {
         if (order.getId() == null) {
             return create(order);

@@ -7,6 +7,7 @@ import com.es.phoneshop.domain.common.model.PaymentMethod;
 import com.es.phoneshop.domain.common.model.Price;
 import com.es.phoneshop.domain.order.model.ContactDetails;
 import com.es.phoneshop.domain.order.model.DeliveryDetails;
+import com.es.phoneshop.domain.order.service.CartEmptyException;
 import com.es.phoneshop.domain.order.service.OrderService;
 import com.es.phoneshop.domain.product.persistence.ProductDao;
 import com.es.phoneshop.infra.config.Configuration;
@@ -98,18 +99,20 @@ public class CheckoutPageServlet extends HttpServlet {
             redirectError(request, response, "Payment method must be one of the suggested.");
             return;
         }
+
         Cart cart = cartService.get(request.getSession());
-        if (cart.getItems().isEmpty()) {
+        UUID orderSecureId;
+        try {
+            orderSecureId = orderService.order(cart,
+                    new DeliveryDetails(deliveryAddress,
+                            LocalDate.parse(deliveryDateStr, DateTimeFormatter.ofPattern("yyyy-MM-dd")),
+                            new Price(new BigDecimal(100), Currency.getInstance("USD"))),
+                    new ContactDetails(firstName, lastName, phoneNumber),
+                    PaymentMethod.fromString(paymentMethodStr));
+        } catch (CartEmptyException e) {
             redirectError(request, response, "Cart cannot be empty.");
             return;
         }
-        UUID orderSecureId = orderService.order(cart,
-                new DeliveryDetails(deliveryAddress,
-                        LocalDate.parse(deliveryDateStr, DateTimeFormatter.ofPattern("yyyy-MM-dd")),
-                        new Price(new BigDecimal(100), Currency.getInstance("USD"))),
-                new ContactDetails(firstName, lastName, phoneNumber),
-                PaymentMethod.fromString(paymentMethodStr));
-
         cartService.clear(request.getSession());
         messagesHandler.add(request, response, SUCCESS, "Products are successfully ordered!");
         response.sendRedirect(request.getContextPath() + "/order/overview/" + orderSecureId);
