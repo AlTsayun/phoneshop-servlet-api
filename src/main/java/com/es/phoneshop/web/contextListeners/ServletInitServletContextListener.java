@@ -3,8 +3,10 @@ package com.es.phoneshop.web.contextListeners;
 import com.es.phoneshop.infra.config.Configuration;
 import com.es.phoneshop.infra.config.ConfigurationImpl;
 import com.es.phoneshop.web.*;
+import com.es.phoneshop.web.filters.DosProtectionFilter;
 
 import javax.servlet.*;
+import java.util.EnumSet;
 
 public class ServletInitServletContextListener implements ServletContextListener {
     @Override
@@ -68,7 +70,10 @@ public class ServletInitServletContextListener implements ServletContextListener
                     servletContext,
                     "orderOverview",
                     "/order/overview/*",
-                    new OrderOverviewPageServlet(configuration));
+                    new OrderOverviewPageServlet(configuration, errorHandler));
+
+            FilterRegistration.Dynamic dosProtection = servletContext.addFilter("dosProtection", new DosProtectionFilter(configuration));
+            dosProtection.addMappingForUrlPatterns(EnumSet.of(DispatcherType.REQUEST), false, "/*");
         }
     }
 

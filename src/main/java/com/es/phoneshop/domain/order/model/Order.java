@@ -3,10 +3,13 @@ package com.es.phoneshop.domain.order.model;
 import com.es.phoneshop.domain.common.model.PaymentMethod;
 
 import java.util.List;
+import java.util.UUID;
 
 public class Order {
 
     private Long id;
+
+    private UUID secureId;
 
     private List<OrderItem> items;
 
@@ -16,8 +19,14 @@ public class Order {
 
     private PaymentMethod paymentMethod;
 
-    public Order(Long id, List<OrderItem> items, DeliveryDetails deliveryDetails, ContactDetails contactDetails, PaymentMethod paymentMethod) {
+    public Order(Long id,
+                 UUID secureId,
+                 List<OrderItem> items,
+                 DeliveryDetails deliveryDetails,
+                 ContactDetails contactDetails,
+                 PaymentMethod paymentMethod) {
         this.id = id;
+        this.secureId = secureId;
         this.items = items;
         this.deliveryDetails = deliveryDetails;
         this.contactDetails = contactDetails;
@@ -46,5 +55,9 @@ public class Order {
 
     public PaymentMethod getPaymentMethod() {
         return paymentMethod;
+    }
+
+    public UUID getSecureId() {
+        return secureId;
     }
 }

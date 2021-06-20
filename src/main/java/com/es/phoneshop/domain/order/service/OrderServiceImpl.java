@@ -14,6 +14,7 @@ import com.es.phoneshop.domain.product.model.ProductPrice;
 import com.es.phoneshop.domain.product.persistence.ProductDao;
 
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 public class OrderServiceImpl implements OrderService {
@@ -29,7 +30,8 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public Long order(Cart cart, DeliveryDetails deliveryDetails, ContactDetails contactDetails, PaymentMethod paymentMethod) {
+    public UUID order(Cart cart, DeliveryDetails deliveryDetails, ContactDetails contactDetails, PaymentMethod paymentMethod) {
+        UUID secureId = UUID.randomUUID();
         List<OrderItem> items = cart.getItems().stream()
                 .filter(it -> productDao.getById(it.getProductId()).isPresent())
                 .map(it -> {
@@ -38,6 +40,7 @@ public class OrderServiceImpl implements OrderService {
                     return new OrderItem(it.getProductId(), it.getQuantity(), new Price(price.getValue(), price.getCurrency()));
                 })
                 .collect(Collectors.toList());
-        return orderDao.save(new Order(null, items, deliveryDetails, contactDetails, paymentMethod));
+        orderDao.save(new Order(null, secureId, items, deliveryDetails, contactDetails, paymentMethod));
+        return secureId;
     }
 }

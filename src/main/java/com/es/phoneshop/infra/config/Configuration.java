@@ -5,6 +5,7 @@ import com.es.phoneshop.domain.order.persistence.OrderDao;
 import com.es.phoneshop.domain.order.service.OrderService;
 import com.es.phoneshop.domain.product.persistence.ProductDao;
 import com.es.phoneshop.domain.product.service.ViewedProductsHistoryService;
+import com.es.phoneshop.security.dosProtection.service.DosProtectionService;
 import com.es.phoneshop.utils.LongIdGenerator;
 import com.es.phoneshop.utils.sessionLock.SessionLockProvider;
 import com.es.phoneshop.utils.sessionLock.SessionLockWrapper;
@@ -19,6 +20,8 @@ public interface Configuration {
     OrderService getOrderService();
 
     OrderDao getOrderDao();
+
+    DosProtectionService getDosProtectionService();
 
     ViewedProductsHistoryService getViewedProductsHistoryService();
 

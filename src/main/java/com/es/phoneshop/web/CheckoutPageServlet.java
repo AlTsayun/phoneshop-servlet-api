@@ -22,6 +22,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.Currency;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
@@ -97,14 +98,15 @@ public class CheckoutPageServlet extends HttpServlet {
             return;
         }
         //todo: check cart not empty
-        Long orderId = orderService.order(cartService.getCart(request.getSession()),
+        UUID orderSecureId = orderService.order(cartService.getCart(request.getSession()),
                 new DeliveryDetails(deliveryAddress,
                         LocalDate.parse(deliveryDateStr, DateTimeFormatter.ofPattern("yyyy-MM-dd")),
                         new Price(new BigDecimal(100), Currency.getInstance("USD"))),
                 new ContactDetails(firstName, lastName, phoneNumber),
                 PaymentMethod.fromString(paymentMethodStr));
+        //todo: clear cart
         messagesHandler.add(request, response, SUCCESS, "Products are successfully ordered!");
-        response.sendRedirect(request.getContextPath() + "/order/overview/" + orderId);
+        response.sendRedirect(request.getContextPath() + "/order/overview/" + orderSecureId);
     }
 
     private boolean verifyPaymentMethod(String paymentMethod) {

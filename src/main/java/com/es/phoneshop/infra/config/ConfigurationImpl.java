@@ -10,6 +10,8 @@ import com.es.phoneshop.domain.product.persistence.ArrayListProductDao;
 import com.es.phoneshop.domain.product.persistence.ProductDao;
 import com.es.phoneshop.domain.product.service.ViewedProductsHistoryService;
 import com.es.phoneshop.domain.product.service.ViewedProductsHistoryServiceImpl;
+import com.es.phoneshop.security.dosProtection.service.DosProtectionService;
+import com.es.phoneshop.security.dosProtection.service.DosProtectionServiceImpl;
 import com.es.phoneshop.utils.LongIdGenerator;
 import com.es.phoneshop.utils.LongIdGeneratorImpl;
 import com.es.phoneshop.utils.sessionLock.SessionLockProvider;
@@ -36,6 +38,7 @@ public class ConfigurationImpl implements Configuration {
     private final Lock sessionLockWrapperLock = new ReentrantLock();
     private final Lock orderDaoLock = new ReentrantLock();
     private final Lock orderServiceLock = new ReentrantLock();
+    private final Lock dosProtectionServiceLock = new ReentrantLock();
 
     private ProductDao productDao;
     private OrderDao orderDao;
@@ -44,6 +47,7 @@ public class ConfigurationImpl implements Configuration {
     private ViewedProductsHistoryService viewedProductsHistoryService;
     private SessionLockWrapper sessionLockWrapper;
     private OrderService orderService;
+    private DosProtectionService dosProtectionService;
 
     private ConfigurationImpl() {
     }
@@ -88,6 +92,21 @@ public class ConfigurationImpl implements Configuration {
             }
         }
         return orderDao;
+    }
+
+    @Override
+    public DosProtectionService getDosProtectionService() {
+        if (dosProtectionService == null) {
+            dosProtectionServiceLock.lock();
+            try {
+                if (dosProtectionService == null) {
+                    dosProtectionService = new DosProtectionServiceImpl(20, 30 * 1000);
+                }
+            } finally {
+                dosProtectionServiceLock.unlock();
+            }
+        }
+        return dosProtectionService;
     }
 
     @Override

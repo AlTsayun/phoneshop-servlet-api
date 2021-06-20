@@ -13,6 +13,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.NoSuchElementException;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 public class OrderOverviewPageServlet extends HttpServlet {
@@ -21,9 +22,12 @@ public class OrderOverviewPageServlet extends HttpServlet {
 
     private ProductDao productDao;
 
-    public OrderOverviewPageServlet(Configuration configuration) {
+    private ErrorHandler errorHandler;
+
+    public OrderOverviewPageServlet(Configuration configuration, ErrorHandler errorHandler) {
         this.orderDao = configuration.getOrderDao();
         this.productDao = configuration.getProductDao();
+        this.errorHandler = errorHandler;
     }
 
     @Override
@@ -31,8 +35,9 @@ public class OrderOverviewPageServlet extends HttpServlet {
         String orderIdStr = request.getPathInfo().substring(1);
         Order order;
         try {
-            order = orderDao.getById(Long.valueOf(orderIdStr)).get();
-        } catch (NumberFormatException | NoSuchElementException e) {
+            order = orderDao.getBySecureId(UUID.fromString(orderIdStr)).get();
+        } catch (IllegalArgumentException | NoSuchElementException e) {
+            //todo: order not found
 //            errorHandler.productNotFound(request, response, orderIdStr);
             return;
         }

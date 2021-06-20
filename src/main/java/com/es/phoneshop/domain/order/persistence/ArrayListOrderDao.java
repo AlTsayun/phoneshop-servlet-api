@@ -6,6 +6,7 @@ import com.es.phoneshop.utils.LongIdGenerator;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.stream.IntStream;
@@ -30,6 +31,18 @@ public class ArrayListOrderDao implements OrderDao {
         try {
             return items.stream()
                     .filter(it -> id.equals(it.getId()))
+                    .findFirst();
+        } finally {
+            lock.readLock().unlock();
+        }
+    }
+
+    @Override
+    public Optional<Order> getBySecureId(UUID id) {
+        lock.readLock().lock();
+        try {
+            return items.stream()
+                    .filter(it -> id.equals(it.getSecureId()))
                     .findFirst();
         } finally {
             lock.readLock().unlock();

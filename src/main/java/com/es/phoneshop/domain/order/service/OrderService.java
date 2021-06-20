@@ -5,6 +5,8 @@ import com.es.phoneshop.domain.common.model.PaymentMethod;
 import com.es.phoneshop.domain.order.model.ContactDetails;
 import com.es.phoneshop.domain.order.model.DeliveryDetails;
 
+import java.util.UUID;
+
 public interface OrderService {
-    Long order(Cart cart, DeliveryDetails deliveryDetails, ContactDetails contactDetails, PaymentMethod paymentMethod);
+    UUID order(Cart cart, DeliveryDetails deliveryDetails, ContactDetails contactDetails, PaymentMethod paymentMethod);
 }
