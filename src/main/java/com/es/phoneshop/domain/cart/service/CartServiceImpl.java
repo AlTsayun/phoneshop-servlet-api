@@ -33,7 +33,7 @@ public class CartServiceImpl implements CartService {
     }
 
     @Override
-    public void add(HttpSession session, Long productId, int quantity) throws ProductNotFoundException,
+    public void addCartItem(HttpSession session, Long productId, int quantity) throws ProductNotFoundException,
             ProductStockNotEnoughException,
             ProductQuantityTooLowException {
         modifyCart(session, productId, (cart, product) -> {
@@ -89,7 +89,7 @@ public class CartServiceImpl implements CartService {
     }
 
     @Override
-    public void update(HttpSession session, Long productId, int quantity) throws ProductNotFoundException,
+    public void updateCartItem(HttpSession session, Long productId, int quantity) throws ProductNotFoundException,
             ProductNotFoundInCartException,
             ProductStockNotEnoughException,
             ProductQuantityTooLowException {
@@ -113,7 +113,7 @@ public class CartServiceImpl implements CartService {
     }
 
     @Override
-    public void deleteById(HttpSession session, Long productId) throws ProductNotFoundException,
+    public void deleteCartItemById(HttpSession session, Long productId) throws ProductNotFoundException,
             ProductNotFoundInCartException {
         modifyCart(session, productId, (cart, product) -> {
             if (!cart.getItems().removeIf(it -> it.getProductId().equals(productId))) {
@@ -124,7 +124,7 @@ public class CartServiceImpl implements CartService {
 
     @Override
     public MiniCart getMiniCart(HttpSession session) {
-        List<DisplayCartItem> products = getCart(session).getItems().stream()
+        List<DisplayCartItem> products = get(session).getItems().stream()
                 .filter(it -> productDao.getById(it.getProductId()).isPresent())
                 .map(it -> new DisplayCartItem(productDao.getById(it.getProductId()).get(), it.getQuantity()))
                 .collect(Collectors.toList());
@@ -132,7 +132,7 @@ public class CartServiceImpl implements CartService {
     }
 
     @Override
-    public Cart getCart(HttpSession session) {
+    public Cart get(HttpSession session) {
         Lock lock = sessionLockProvider.getLock(session).writeLock();
         lock.lock();
         try {
@@ -142,6 +142,24 @@ public class CartServiceImpl implements CartService {
                 session.setAttribute(cartSessionAttributeName, cart = new Cart(new ArrayList<>()));
             }
             return cart;
+
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    @Override
+    public void clear(HttpSession session) {
+        Lock lock = sessionLockProvider.getLock(session).writeLock();
+        lock.lock();
+        try {
+            Cart cart = (Cart) session.getAttribute(cartSessionAttributeName);
+
+            if (cart == null) {
+                session.setAttribute(cartSessionAttributeName, cart = new Cart(new ArrayList<>()));
+            } else {
+                cart.getItems().clear();
+            }
 
         } finally {
             lock.unlock();

@@ -37,8 +37,7 @@ public class OrderOverviewPageServlet extends HttpServlet {
         try {
             order = orderDao.getBySecureId(UUID.fromString(orderIdStr)).get();
         } catch (IllegalArgumentException | NoSuchElementException e) {
-            //todo: order not found
-//            errorHandler.productNotFound(request, response, orderIdStr);
+            errorHandler.orderNotFound(request, response, orderIdStr);
             return;
         }
         request.setAttribute("order",

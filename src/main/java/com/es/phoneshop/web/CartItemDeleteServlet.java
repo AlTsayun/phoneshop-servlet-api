@@ -35,7 +35,7 @@ public class CartItemDeleteServlet extends HttpServlet {
 
         try {
             Long productId = Long.valueOf(productIdStr);
-            cartService.deleteById(request.getSession(), productId);
+            cartService.deleteCartItemById(request.getSession(), productId);
             messagesHandler.add(request, response, SUCCESS, "Product is successfully deleted from your cart.");
         } catch (NumberFormatException | ProductNotFoundException e) {
             messagesHandler.add(request, response, ERROR, "Product is not found.");

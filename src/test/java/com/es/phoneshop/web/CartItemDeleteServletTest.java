@@ -96,7 +96,7 @@ public class CartItemDeleteServletTest extends TestCase{
         Long productId = 0L;
 
         doThrow(new ProductNotFoundInCartException(productId.toString()))
-                .when(cartService).deleteById(session, productId);
+                .when(cartService).deleteCartItemById(session, productId);
         when(request.getParameter("productId")).thenReturn(productId.toString());
         when(request.getSession()).thenReturn(session);
 
@@ -115,7 +115,7 @@ public class CartItemDeleteServletTest extends TestCase{
 
         servlet.doPost(request, response);
 
-        verify(cartService).deleteById(eq(session), eq(productId));
+        verify(cartService).deleteCartItemById(eq(session), eq(productId));
         verify(messagesHandler).add(any(), any(), eq(SUCCESS), any());
         verify(response).sendRedirect(eq(referer));
     }

@@ -122,7 +122,7 @@ public class ProductDetailsPageServletTest extends TestCase {
 
     private CartService setupCartService(Cart cart) {
         CartService cartService = mock(CartService.class);
-        when(cartService.getCart(any())).thenReturn(cart);
+        when(cartService.get(any())).thenReturn(cart);
         return cartService;
     }
 
@@ -144,7 +144,7 @@ public class ProductDetailsPageServletTest extends TestCase {
         servlet.doGet(request, response);
         verify(requestDispatcher).forward(request, response);
         verify(request).setAttribute(eq("product"), eq(testProduct));
-        verify(cartService).getCart(any());
+        verify(cartService).get(any());
         verify(viewedProductsHistoryService).add(any(), eq(productId));
     }
 

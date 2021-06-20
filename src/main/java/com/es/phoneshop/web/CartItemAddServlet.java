@@ -39,7 +39,7 @@ public class CartItemAddServlet extends HttpServlet {
 
             Long productId = Long.valueOf(productIdStr);
 
-            cartService.add(request.getSession(), productId, quantity);
+            cartService.addCartItem(request.getSession(), productId, quantity);
 
             messagesHandler.add(request, response, SUCCESS, "Product successfully added to your cart.");
         } catch (ParseException | ArithmeticException e) {

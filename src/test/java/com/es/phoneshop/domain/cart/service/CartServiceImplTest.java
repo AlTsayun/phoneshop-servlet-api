@@ -8,7 +8,6 @@ import com.es.phoneshop.domain.product.model.ProductPrice;
 import com.es.phoneshop.domain.product.persistence.ProductDao;
 import com.es.phoneshop.domain.product.service.ProductNotFoundException;
 import com.es.phoneshop.utils.sessionLock.SessionLockProvider;
-import com.es.phoneshop.utils.sessionLock.SessionLockWrapper;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -40,12 +39,12 @@ public class CartServiceImplTest {
 
     @Test
     public void testAdd(){
-        cartService.add(session, 0L, 1);
+        cartService.addCartItem(session, 0L, 1);
         assertEquals(1, testCart.getItems().size());
         assertEquals(11, testCart.getItems().get(0).getQuantity());
         assertEquals(Long.valueOf(0L), testCart.getItems().get(0).getProductId());
 
-        cartService.add(session, 1L, 1);
+        cartService.addCartItem(session, 1L, 1);
         assertEquals(2, testCart.getItems().size());
         assertEquals(11, testCart.getItems().get(0).getQuantity());
         assertEquals(Long.valueOf(0L), testCart.getItems().get(0).getProductId());
@@ -55,22 +54,22 @@ public class CartServiceImplTest {
 
     @Test(expected = ProductNotFoundException.class)
     public void testAddWrongProductId(){
-        cartService.add(session, 10L, 1);
+        cartService.addCartItem(session, 10L, 1);
     }
 
     @Test(expected = ProductQuantityTooLowException.class)
     public void testAddProductQuantityTooLow(){
-        cartService.add(session, 0L, -1);
+        cartService.addCartItem(session, 0L, -1);
     }
 
     @Test(expected = ProductStockNotEnoughException.class)
     public void testAddProductStockNotEnoughException(){
-        cartService.add(session, 0L, 100);
+        cartService.addCartItem(session, 0L, 100);
     }
 
     @Test
     public void testUpdate(){
-        cartService.update(session, 0L, 1);
+        cartService.updateCartItem(session, 0L, 1);
         assertEquals(1, testCart.getItems().size());
         assertEquals(1, testCart.getItems().get(0).getQuantity());
         assertEquals(Long.valueOf(0L), testCart.getItems().get(0).getProductId());
@@ -78,34 +77,34 @@ public class CartServiceImplTest {
 
     @Test(expected = ProductNotFoundException.class)
     public void testUpdateWrongProductId(){
-        cartService.update(session, 10L, 1);
+        cartService.updateCartItem(session, 10L, 1);
     }
 
     @Test(expected = ProductQuantityTooLowException.class)
     public void testUpdateProductQuantityTooLow(){
-        cartService.update(session, 0L, -1);
+        cartService.updateCartItem(session, 0L, -1);
     }
 
     @Test(expected = ProductStockNotEnoughException.class)
     public void testUpdateProductStockNotEnoughException(){
-        cartService.update(session, 0L, 100);
+        cartService.updateCartItem(session, 0L, 100);
     }
 
     @Test
     public void testDeleteById(){
-        cartService.deleteById(session, 0L);
+        cartService.deleteCartItemById(session, 0L);
         assertEquals(0, testCart.getItems().size());
     }
 
     @Test(expected = ProductNotFoundInCartException.class)
     public void testDeleteByIdWrongProductId(){
-        cartService.deleteById(session, 1L);
+        cartService.deleteCartItemById(session, 1L);
     }
 
 
     @Test
     public void testGetCart(){
-        Cart resultCart = cartService.getCart(session);
+        Cart resultCart = cartService.get(session);
         assertEquals(testCart, resultCart);
         verify(session).getAttribute(eq(cartSessionAttributeName));
     }

@@ -131,7 +131,7 @@ public class CartPageServletTest extends TestCase {
 
     private CartService setupCartService(HttpSession session, Cart cart) {
         CartService cartService = mock(CartService.class);
-        when(cartService.getCart(session)).thenReturn(cart);
+        when(cartService.get(session)).thenReturn(cart);
         return cartService;
     }
 
@@ -157,7 +157,7 @@ public class CartPageServletTest extends TestCase {
         servlet.doPost(request, response);
 
         for (int i = 0; i < productIds.length; i++) {
-            verify(cartService).update(eq(session), eq(productIds[i]), eq(quantities[i]));
+            verify(cartService).updateCartItem(eq(session), eq(productIds[i]), eq(quantities[i]));
         }
         verify(messagesHandler, times(productIds.length)).add(any(), any(), eq(SUCCESS), any());
         verify(response).sendRedirect(eq(requestContextPath + "/cart"));
@@ -196,7 +196,7 @@ public class CartPageServletTest extends TestCase {
                 .mapToObj(Integer::toString)
                 .toArray(String[]::new));
 
-        doThrow(new ProductNotFoundException(((Long) 100L).toString())).when(cartService).update(any(), eq(100L),
+        doThrow(new ProductNotFoundException(((Long) 100L).toString())).when(cartService).updateCartItem(any(), eq(100L),
                 anyInt());
 
         servlet.doPost(request, response);
@@ -219,7 +219,7 @@ public class CartPageServletTest extends TestCase {
                 .mapToObj(Integer::toString)
                 .toArray(String[]::new));
 
-        doThrow(new ProductStockNotEnoughException()).when(cartService).update(
+        doThrow(new ProductStockNotEnoughException()).when(cartService).updateCartItem(
                 any(),
                 eq(1L),
                 gt(10));
@@ -261,7 +261,7 @@ public class CartPageServletTest extends TestCase {
         when(request.getParameterValues("quantity")).thenReturn(quantities);
 
 
-        doThrow(new ProductQuantityTooLowException(-1)).when(cartService).update(
+        doThrow(new ProductQuantityTooLowException(-1)).when(cartService).updateCartItem(
                 any(),
                 any(),
                 lt(1));
@@ -295,7 +295,7 @@ public class CartPageServletTest extends TestCase {
         List<CartItem> illegalCartItems = new ArrayList<>();
         illegalCartItems.add(new CartItem(100L, 1));
         Cart illegalCart = new Cart(illegalCartItems);
-        when(cartService.getCart(session)).thenReturn(illegalCart);
+        when(cartService.get(session)).thenReturn(illegalCart);
 
         servlet.doGet(request, response);
 

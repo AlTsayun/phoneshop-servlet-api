@@ -55,7 +55,7 @@ public class CartPageServlet extends HttpServlet {
                     throw new ProductNotFoundException(productIdStrings[i]);
                 }
 
-                cartService.update(request.getSession(), productId, quantity);
+                cartService.updateCartItem(request.getSession(), productId, quantity);
                 messagesHandler.add(request,
                         response,
                         SUCCESS,
@@ -77,7 +77,7 @@ public class CartPageServlet extends HttpServlet {
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        List<DisplayCartItem> productsInCart = cartService.getCart(request.getSession()).getItems().stream()
+        List<DisplayCartItem> productsInCart = cartService.get(request.getSession()).getItems().stream()
                 .filter(it -> isPresentInDao(it.getProductId(), id ->
                         messagesHandler.add(
                                 request,

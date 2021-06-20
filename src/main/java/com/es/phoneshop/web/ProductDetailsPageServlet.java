@@ -57,7 +57,7 @@ public class ProductDetailsPageServlet extends HttpServlet {
     private void setProductsInCartAttribute(HttpServletRequest request, HttpServletResponse response){
         List<DisplayCartItem> productsInCart;
 
-        productsInCart = cartService.getCart(request.getSession()).getItems().stream()
+        productsInCart = cartService.get(request.getSession()).getItems().stream()
                 .filter(it -> productDao.getById(it.getProductId()).isPresent())
                 .map(it -> new DisplayCartItem(productDao.getById(it.getProductId()).get(), it.getQuantity()))
                 .collect(Collectors.toList());

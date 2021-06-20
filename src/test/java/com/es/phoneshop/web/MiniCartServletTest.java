@@ -118,7 +118,7 @@ public class MiniCartServletTest extends TestCase {
 
     private CartService setupCartService(HttpSession session, Cart cart) {
         CartService cartService = mock(CartService.class);
-        when(cartService.getCart(session)).thenReturn(cart);
+        when(cartService.get(session)).thenReturn(cart);
         return cartService;
     }
 
@@ -144,7 +144,7 @@ public class MiniCartServletTest extends TestCase {
         cartItems.add(new CartItem(0L, 1));
         cartItems.add(new CartItem(100L, 1));
         Cart cartWithWrongId = new Cart(cartItems);
-        when(cartService.getCart(session)).thenReturn(cartWithWrongId);
+        when(cartService.get(session)).thenReturn(cartWithWrongId);
 
         servlet.doGet(request, response);
 

@@ -1,5 +1,6 @@
 package com.es.phoneshop.web;
 
+import com.es.phoneshop.domain.cart.model.Cart;
 import com.es.phoneshop.domain.cart.model.DisplayCartItem;
 import com.es.phoneshop.domain.cart.service.CartService;
 import com.es.phoneshop.domain.common.model.PaymentMethod;
@@ -48,7 +49,7 @@ public class CheckoutPageServlet extends HttpServlet {
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        List<DisplayCartItem> productsInCart = cartService.getCart(request.getSession()).getItems().stream()
+        List<DisplayCartItem> productsInCart = cartService.get(request.getSession()).getItems().stream()
                 .filter(it -> isPresentInDao(it.getProductId(), id ->
                         messagesHandler.add(
                                 request,
@@ -97,14 +98,19 @@ public class CheckoutPageServlet extends HttpServlet {
             redirectError(request, response, "Payment method must be one of the suggested.");
             return;
         }
-        //todo: check cart not empty
-        UUID orderSecureId = orderService.order(cartService.getCart(request.getSession()),
+        Cart cart = cartService.get(request.getSession());
+        if (cart.getItems().isEmpty()) {
+            redirectError(request, response, "Cart cannot be empty.");
+            return;
+        }
+        UUID orderSecureId = orderService.order(cart,
                 new DeliveryDetails(deliveryAddress,
                         LocalDate.parse(deliveryDateStr, DateTimeFormatter.ofPattern("yyyy-MM-dd")),
                         new Price(new BigDecimal(100), Currency.getInstance("USD"))),
                 new ContactDetails(firstName, lastName, phoneNumber),
                 PaymentMethod.fromString(paymentMethodStr));
-        //todo: clear cart
+
+        cartService.clear(request.getSession());
         messagesHandler.add(request, response, SUCCESS, "Products are successfully ordered!");
         response.sendRedirect(request.getContextPath() + "/order/overview/" + orderSecureId);
     }
