@@ -3,6 +3,7 @@ package com.es.phoneshop.web;
 import com.es.phoneshop.domain.cart.model.Cart;
 import com.es.phoneshop.domain.cart.model.CartItem;
 import com.es.phoneshop.domain.cart.service.CartService;
+import com.es.phoneshop.domain.order.service.CartEmptyException;
 import com.es.phoneshop.domain.order.service.OrderService;
 import com.es.phoneshop.domain.product.model.Product;
 import com.es.phoneshop.domain.product.model.ProductPrice;
@@ -25,8 +26,11 @@ import java.time.LocalDateTime;
 import java.time.Month;
 import java.util.Currency;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
+import static com.es.phoneshop.web.MessagesHandler.MessageType.ERROR;
+import static com.es.phoneshop.web.MessagesHandler.MessageType.SUCCESS;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
@@ -48,6 +52,8 @@ public class CheckoutPageServletTest {
     private OrderService orderService;
     private List<Product> testProducts;
 
+    private String contextPath = "/contextPath";
+
     @Mock
     private RequestDispatcher requestDispatcher;
     private HttpSession session;
@@ -64,9 +70,12 @@ public class CheckoutPageServletTest {
         when(request.getSession()).thenReturn(session);
     }
 
-
     private Cart setupCart() {
         return new Cart(List.of(new CartItem(0L, 10)));
+    }
+
+    private Cart setupIllegalCart() {
+        return new Cart(List.of(new CartItem(100L, 10)));
     }
 
     private HttpSession setupSession() {
@@ -105,10 +114,98 @@ public class CheckoutPageServletTest {
         return config;
     }
 
+    private HttpServletRequest setupPostRequest(
+            HttpSession session,
+            String firstName,
+            String lastName,
+            String phoneNumber,
+            String deliveryDate,
+            String deliveryAddress,
+            String paymentMethod) {
+        HttpServletRequest req = mock(HttpServletRequest.class);
+        when(req.getParameter(eq("firstName"))).thenReturn(firstName);
+        when(req.getParameter(eq("lastName"))).thenReturn(lastName);
+        when(req.getParameter(eq("phoneNumber"))).thenReturn(phoneNumber);
+        when(req.getParameter(eq("deliveryDate"))).thenReturn(deliveryDate);
+        when(req.getParameter(eq("deliveryAddress"))).thenReturn(deliveryAddress);
+        when(req.getParameter(eq("paymentMethod"))).thenReturn(paymentMethod);
+        when(req.getContextPath()).thenReturn(contextPath);
+        when(req.getSession()).thenReturn(session);
+        return req;
+    }
+
     @Test
     public void testDoGet() throws ServletException, IOException {
         servlet.doGet(request, response);
         verify(request).setAttribute(eq("productsInCart"), any());
         verify(requestDispatcher).forward(request, response);
+    }
+
+    @Test
+    public void testDoGetProductNotPresentInDao() throws ServletException, IOException {
+        when(cartService.get(session)).thenReturn(setupIllegalCart());
+        servlet.doGet(request, response);
+        verify(messagesHandler).add(any(), any(), eq(ERROR), any());
+        verify(request).setAttribute(eq("productsInCart"), any());
+        verify(requestDispatcher).forward(request, response);
+    }
+
+    @Test
+    public void testDoPost() throws ServletException, IOException {
+        request = setupPostRequest(session,
+                "firstName",
+                "lastName",
+                "123-12-12",
+                "4000-01-01",
+                "deliveryAddress",
+                "cash");
+        servlet.doPost(request, response);
+        verify(messagesHandler).add(any(), any(), eq(SUCCESS), any());
+        verify(cartService).clear(session);
+        verify(response).sendRedirect(any());
+    }
+
+    @Test
+    public void testDoPostIllegalFirstName() throws ServletException, IOException {
+        request = setupPostRequest(session,
+                "123",
+                "lastName",
+                "123-12-12",
+                "4000-01-01",
+                "deliveryAddress",
+                "cash");
+        servlet.doPost(request, response);
+        verify(messagesHandler).add(any(), any(), eq(ERROR), any());
+        verify(response).sendRedirect(any());
+    }
+
+    @Test
+    public void testDoPostIllegalLastName() throws ServletException, IOException {
+        request = setupPostRequest(session,
+                "fistName",
+                "123",
+                "123-12-12",
+                "4000-01-01",
+                "deliveryAddress",
+                "cash");
+        servlet.doPost(request, response);
+        verify(messagesHandler).add(any(), any(), eq(ERROR), any());
+        verify(response).sendRedirect(any());
+    }
+
+    @Test
+    public void testDoPostEmptyCart() throws ServletException, IOException {
+        request = setupPostRequest(session,
+                "firstName",
+                "lastName",
+                "123-12-12",
+                "4000-01-01",
+                "deliveryAddress",
+                "cash");
+        when(orderService.order(any(), any(), any(), any())).thenThrow(new CartEmptyException());
+        when(request.getParameterMap()).thenReturn(Map.of());
+        servlet.doPost(request, response);
+        verify(messagesHandler).add(any(), any(), eq(ERROR), any());
+        verify(response).sendRedirect(eq(contextPath + "/checkout"));
     }
 }
