@@ -78,33 +78,33 @@ public class CheckoutPageServlet extends HttpServlet {
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         String firstName = request.getParameter("firstName");
         if (!verifyFirstName(firstName)) {
-            redirectError(request, response, "First name must contain only letters.");
+            showError(request, response, "First name must contain only letters.");
             return;
         }
         String lastName = request.getParameter("lastName");
         if (!verifyLastName(lastName)) {
-            redirectError(request, response, "Last name must contain only letters.");
+            showError(request, response, "Last name must contain only letters.");
             return;
         }
         String phoneNumber = request.getParameter("phoneNumber");
         if (!verifyPhoneNumber(phoneNumber)) {
-            redirectError(request, response, "Phone number must contain digits spaces or dashes.");
+            showError(request, response, "Phone number must contain digits spaces or dashes.");
             return;
         }
         String deliveryDateStr = request.getParameter("deliveryDate");
         if (!verifyDeliveryDate(deliveryDateStr)) {
-            redirectError(request, response, "Delivery date must be after now.");
+            showError(request, response, "Delivery date must be after now.");
             return;
         }
         String deliveryAddress = request.getParameter("deliveryAddress");
         if (!verifyAddress(deliveryAddress)) {
-            redirectError(request, response, "Address must not be empty.");
+            showError(request, response, "Address must not be empty.");
             return;
         }
 
         String paymentMethodStr = request.getParameter("paymentMethod");
         if (!verifyPaymentMethod(paymentMethodStr)) {
-            redirectError(request, response, "Payment method must be one of the suggested.");
+            showError(request, response, "Payment method must be one of the suggested.");
             return;
         }
 
@@ -118,7 +118,7 @@ public class CheckoutPageServlet extends HttpServlet {
                     new ContactDetails(firstName, lastName, phoneNumber),
                     PaymentMethod.fromString(paymentMethodStr));
         } catch (CartEmptyException e) {
-            redirectError(request, response, "Cart cannot be empty.");
+            showError(request, response, "Cart cannot be empty.");
             return;
         }
         cartService.clear(request.getSession());
@@ -164,7 +164,7 @@ public class CheckoutPageServlet extends HttpServlet {
         return word != null && word.matches("[A-Za-z]+");
     }
 
-    private void redirectError(HttpServletRequest request, HttpServletResponse response, String errorMessage) throws IOException, ServletException {
+    private void showError(HttpServletRequest request, HttpServletResponse response, String errorMessage) throws IOException, ServletException {
         messagesHandler.add(request, response, ERROR, errorMessage);
         doGet(request, response);
     }
