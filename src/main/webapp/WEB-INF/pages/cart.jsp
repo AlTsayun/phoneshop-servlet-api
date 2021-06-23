@@ -54,9 +54,12 @@
         </table>
         <c:if test="${not empty productsInCart}">
             <button type="submit">Update</button>
-            <button formaction="${pageContext.servletContext.contextPath}/checkout" formmethod="get">
-                Checkout
-            </button>
+
         </c:if>
     </form>
+    <c:if test="${not empty productsInCart}">
+        <form action="${pageContext.servletContext.contextPath}/checkout" method="get">
+            <button>Checkout</button>
+        </form>
+    </c:if>
 </tags:master>

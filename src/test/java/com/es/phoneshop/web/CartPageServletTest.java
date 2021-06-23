@@ -182,6 +182,38 @@ public class CartPageServletTest extends TestCase {
     }
 
     @Test
+    public void testDoPostNoProductIds() throws IOException {
+        String[] productIds = new String[]{};
+        int[] quantities = new int[]{1, 2};
+
+        when(request.getParameterValues("productId")).thenReturn(productIds);
+        when(request.getParameterValues("quantity")).thenReturn(Arrays.stream(quantities)
+                .mapToObj(Integer::toString)
+                .toArray(String[]::new));
+
+        servlet.doPost(request, response);
+
+        verify(messagesHandler, times(1)).add(any(), any(), eq(ERROR), any());
+        verify(response).sendRedirect(eq(requestContextPath + "/cart"));
+    }
+
+    @Test
+    public void testDoPostNoQuantities() throws IOException {
+        String[] productIds = new String[]{"0"};
+        int[] quantities = new int[]{};
+
+        when(request.getParameterValues("productId")).thenReturn(productIds);
+        when(request.getParameterValues("quantity")).thenReturn(Arrays.stream(quantities)
+                .mapToObj(Integer::toString)
+                .toArray(String[]::new));
+
+        servlet.doPost(request, response);
+
+        verify(messagesHandler, times(1)).add(any(), any(), eq(ERROR), any());
+        verify(response).sendRedirect(eq(requestContextPath + "/cart"));
+    }
+
+    @Test
     public void testDoPostProductNotFound() throws IOException {
         Long[] productIds = new Long[]{0L, 100L};
         int[] quantities = new int[]{1, 2};

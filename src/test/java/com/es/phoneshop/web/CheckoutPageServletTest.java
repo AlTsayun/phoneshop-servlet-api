@@ -138,6 +138,8 @@ public class CheckoutPageServletTest {
     public void testDoGet() throws ServletException, IOException {
         servlet.doGet(request, response);
         verify(request).setAttribute(eq("productsInCart"), any());
+        verify(request).setAttribute(eq("deliveryPrice"), any());
+        verify(request).setAttribute(eq("subtotal"), any());
         verify(requestDispatcher).forward(request, response);
     }
 
@@ -147,6 +149,8 @@ public class CheckoutPageServletTest {
         servlet.doGet(request, response);
         verify(messagesHandler).add(any(), any(), eq(ERROR), any());
         verify(request).setAttribute(eq("productsInCart"), any());
+        verify(request).setAttribute(eq("deliveryPrice"), any());
+        verify(request).setAttribute(eq("subtotal"), any());
         verify(requestDispatcher).forward(request, response);
     }
 
@@ -188,6 +192,62 @@ public class CheckoutPageServletTest {
                 "4000-01-01",
                 "deliveryAddress",
                 "cash");
+        servlet.doPost(request, response);
+        verify(messagesHandler).add(any(), any(), eq(ERROR), any());
+        verify(response).sendRedirect(any());
+    }
+
+    @Test
+    public void testDoPostIllegalPhoneNumber() throws ServletException, IOException {
+        request = setupPostRequest(session,
+                "fistName",
+                "lastName",
+                "number",
+                "4000-01-01",
+                "deliveryAddress",
+                "cash");
+        servlet.doPost(request, response);
+        verify(messagesHandler).add(any(), any(), eq(ERROR), any());
+        verify(response).sendRedirect(any());
+    }
+
+    @Test
+    public void testDoPostIllegalDeliveryDate() throws ServletException, IOException {
+        request = setupPostRequest(session,
+                "fistName",
+                "lastName",
+                "123-12-12",
+                "deliveryDate",
+                "deliveryAddress",
+                "cash");
+        servlet.doPost(request, response);
+        verify(messagesHandler).add(any(), any(), eq(ERROR), any());
+        verify(response).sendRedirect(any());
+    }
+
+    @Test
+    public void testDoPostIllegalDeliveryAddress() throws ServletException, IOException {
+        request = setupPostRequest(session,
+                "fistName",
+                "lastName",
+                "123-12-12",
+                "4000-01-01",
+                "",
+                "cash");
+        servlet.doPost(request, response);
+        verify(messagesHandler).add(any(), any(), eq(ERROR), any());
+        verify(response).sendRedirect(any());
+    }
+
+    @Test
+    public void testDoPostIllegalPaymentMethod() throws ServletException, IOException {
+        request = setupPostRequest(session,
+                "fistName",
+                "lastName",
+                "123-12-12",
+                "4000-01-01",
+                "deliveryAddress",
+                "money");
         servlet.doPost(request, response);
         verify(messagesHandler).add(any(), any(), eq(ERROR), any());
         verify(response).sendRedirect(any());

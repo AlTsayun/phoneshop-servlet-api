@@ -4,6 +4,8 @@
 <%@ taglib prefix="tags" tagdir="/WEB-INF/tags" %>
 
 <jsp:useBean id="productsInCart" type="java.util.ArrayList" scope="request"/>
+<jsp:useBean id="deliveryPrice" type="com.es.phoneshop.domain.common.model.Price" scope="request"/>
+<jsp:useBean id="subtotal" type="com.es.phoneshop.domain.common.model.Price" scope="request"/>
 <tags:master pageTitle="Checkout">
     <table>
         <thead>
@@ -44,14 +46,23 @@
         </c:forEach>
     </table>
 
+    <%--todo: get subtotal, deliveryPrice and total --%>
+
     <p>
-        Cart subtotal: 100$
+            <%--            <c:set var="subtotal" value="${order.getSubtotal()}" scope="page"/>--%>
+        Cart subtotal:
+        <fmt:formatNumber value="${subtotal.value}" type="currency" currencySymbol="${subtotal.currency.symbol}"/>
     </p>
     <p>
-        Delivery cost: 100$
+            <%--            <c:set var="deliveryPrice" value="${order.deliveryDetails.price}" scope="page"/>--%>
+        Delivery cost:
+        <fmt:formatNumber value="${deliveryPrice.value}" type="currency"
+                          currencySymbol="${deliveryPrice.currency.symbol}"/>
     </p>
     <p>
-        Order total: 100$
+        Order total:
+        <fmt:formatNumber value="${deliveryPrice.value.add(subtotal.value)}" type="currency"
+                          currencySymbol="${subtotal.currency.symbol}"/>
     </p>
 
     <form method="post" action="${pageContext.servletContext.contextPath}/checkout">
@@ -104,8 +115,7 @@
                     <select name="paymentMethod">
                         <option value="cash" ${param.paymentMethod.equals("cash") ? "selected" : ""}>Cash</option>
                         <option value="credit_card" ${param.paymentMethod.equals("credit_card") ? "selected" : ""}>
-                            Credit
-                            card
+                            Credit card
                         </option>
                     </select>
                 </td>

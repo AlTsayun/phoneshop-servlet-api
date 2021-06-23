@@ -41,35 +41,43 @@ public class CartPageServlet extends HttpServlet {
         String[] productIdStrings = request.getParameterValues("productId");
         String[] quantityStrings = request.getParameterValues("quantity");
 
-        try {
-            for (int i = 0; i < productIdStrings.length; i++) {
+        if (productIdStrings != null && quantityStrings != null && productIdStrings.length == quantityStrings.length) {
+            try {
+                for (int i = 0; i < productIdStrings.length; i++) {
 
-                int quantity;
-                quantity = Math.toIntExact(
-                        NumberFormat.getInstance(request.getLocale()).parse(quantityStrings[i]).longValue());
+                    int quantity;
+                    quantity = Math.toIntExact(
+                            NumberFormat.getInstance(request.getLocale()).parse(quantityStrings[i]).longValue());
 
-                Long productId;
-                try {
-                    productId = Long.valueOf(productIdStrings[i]);
-                } catch (NumberFormatException e) {
-                    throw new ProductNotFoundException(productIdStrings[i]);
+                    Long productId;
+                    try {
+                        productId = Long.valueOf(productIdStrings[i]);
+                    } catch (NumberFormatException e) {
+                        throw new ProductNotFoundException(productIdStrings[i]);
+                    }
+
+                    cartService.updateCartItem(request.getSession(), productId, quantity);
+                    messagesHandler.add(request,
+                            response,
+                            SUCCESS,
+                            "Product " + (i + 1) + " is successfully updated in your cart.");
                 }
 
-                cartService.updateCartItem(request.getSession(), productId, quantity);
-                messagesHandler.add(request,
-                        response,
-                        SUCCESS,
-                        "Product " + (i + 1) + " is successfully updated in your cart.");
+            } catch (ParseException | ArithmeticException e) {
+                messagesHandler.add(request, response, ERROR, "Entered quantity is not a valid number.");
+            } catch (NumberFormatException | ProductNotFoundException e) {
+                messagesHandler.add(request, response, ERROR, "Product is not found.");
+            } catch (ProductStockNotEnoughException e) {
+                messagesHandler.add(request, response, ERROR, "Product stock is not enough.");
+            } catch (ProductQuantityTooLowException e) {
+                messagesHandler.add(request, response, ERROR, "Quantity " + e.getQuantity() + " is too low.");
             }
-
-        } catch (ParseException | ArithmeticException e) {
-            messagesHandler.add(request, response, ERROR, "Entered quantity is not a valid number.");
-        } catch (NumberFormatException | ProductNotFoundException e) {
-            messagesHandler.add(request, response, ERROR, "Product is not found.");
-        } catch (ProductStockNotEnoughException e) {
-            messagesHandler.add(request, response, ERROR, "Product stock is not enough.");
-        } catch (ProductQuantityTooLowException e) {
-            messagesHandler.add(request, response, ERROR, "Quantity " + e.getQuantity() + " is too low.");
+        } else {
+            messagesHandler.add(
+                    request,
+                    response,
+                    ERROR,
+                    "Products' ids and(or) quantities are not properly entered.");
         }
 
         response.sendRedirect(request.getContextPath() + "/cart");
@@ -93,7 +101,7 @@ public class CartPageServlet extends HttpServlet {
 
     }
 
-    private boolean isPresentInDao(Long productId, Consumer<Long> negativeAction){
+    private boolean isPresentInDao(Long productId, Consumer<Long> negativeAction) {
         if (productDao.getById(productId).isPresent()) {
             return true;
         } else {

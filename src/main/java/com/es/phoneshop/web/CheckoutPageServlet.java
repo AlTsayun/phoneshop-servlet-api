@@ -9,6 +9,7 @@ import com.es.phoneshop.domain.order.model.ContactDetails;
 import com.es.phoneshop.domain.order.model.DeliveryDetails;
 import com.es.phoneshop.domain.order.service.CartEmptyException;
 import com.es.phoneshop.domain.order.service.OrderService;
+import com.es.phoneshop.domain.product.model.ProductPrice;
 import com.es.phoneshop.domain.product.persistence.ProductDao;
 import com.es.phoneshop.infra.config.Configuration;
 
@@ -61,6 +62,14 @@ public class CheckoutPageServlet extends HttpServlet {
                 .map(it -> new DisplayCartItem(productDao.getById(it.getProductId()).get(), it.getQuantity()))
                 .collect(Collectors.toList());
         request.setAttribute("productsInCart", productsInCart);
+        request.setAttribute("deliveryPrice", new Price(new BigDecimal(100), Currency.getInstance("USD")));
+        request.setAttribute("subtotal", productsInCart.stream()
+                .map(it -> {
+                    ProductPrice productPrice = it.getProduct().getActualPrice();
+                    return new Price(productPrice.getValue(), productPrice.getCurrency());
+                })
+                .reduce(new Price(new BigDecimal(0), Currency.getInstance("USD")),
+                        (acc, it) -> new Price(acc.getValue().add(it.getValue()), acc.getCurrency())));
         response.setHeader("Cache-Control", "private, no-store, no-cache, must-revalidate");
         request.getRequestDispatcher("/WEB-INF/pages/checkout.jsp").forward(request, response);
 
@@ -119,7 +128,7 @@ public class CheckoutPageServlet extends HttpServlet {
     }
 
     private boolean verifyPaymentMethod(String paymentMethod) {
-        return paymentMethod != null && (paymentMethod.equals("cash") || paymentMethod.equals("creditCard"));
+        return paymentMethod != null && PaymentMethod.fromString(paymentMethod) != null;
     }
 
     private boolean verifyDeliveryDate(String deliveryDateStr) {

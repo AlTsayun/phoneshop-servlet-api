@@ -45,8 +45,8 @@ public class ServletInitServletContextListenerTest {
     @Before
     public void setup() {
         servletNames = List.of("productList", "productDetails", "productPricesHistory", "cartItemAdd", "cart",
-                "cartItemDelete", "miniCart");
-        filterNames = List.of("cart", "recentlyViewedProducts");
+                "cartItemDelete", "miniCart", "checkout", "orderOverview");
+        filterNames = List.of("dosProtection");
         context = setupContext(servletRegistration, filterRegistration);
         setupConfiguration();
     }

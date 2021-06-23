@@ -21,7 +21,6 @@ import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -56,7 +55,6 @@ public class OrderOverviewPageServletTest {
 
     @Mock
     private RequestDispatcher requestDispatcher;
-    private HttpSession session;
 
     @Before
     public void setup() {
@@ -64,10 +62,8 @@ public class OrderOverviewPageServletTest {
         testOrders = setupTestOrders();
         productDao = setupProductDao(testProducts);
         orderDao = setupOrderDao(testOrders);
-        session = setupSession();
         servlet = new OrderOverviewPageServlet(setupConfiguration(productDao, orderDao), errorHandler);
         when(request.getRequestDispatcher(any())).thenReturn(requestDispatcher);
-        when(request.getSession()).thenReturn(session);
         when(request.getPathInfo()).thenReturn("/a0000000-0000-0000-0000-000000000000");
     }
 
@@ -89,10 +85,6 @@ public class OrderOverviewPageServletTest {
             when(orderDao.getBySecureId(order.getSecureId())).thenReturn(Optional.of(order));
         }
         return orderDao;
-    }
-
-    private HttpSession setupSession() {
-        return mock(HttpSession.class);
     }
 
     private ProductDao setupProductDao(List<Product> products) {
