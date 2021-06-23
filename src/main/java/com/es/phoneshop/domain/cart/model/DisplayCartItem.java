@@ -4,11 +4,11 @@ import com.es.phoneshop.domain.product.model.Product;
 
 import java.util.Objects;
 
-public class ProductInCart {
+public class DisplayCartItem {
     private Product product;
     private int quantity;
 
-    public ProductInCart(Product product, int quantity) {
+    public DisplayCartItem(Product product, int quantity) {
         this.product = product;
         this.quantity = quantity;
     }
@@ -25,7 +25,7 @@ public class ProductInCart {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        ProductInCart that = (ProductInCart) o;
+        DisplayCartItem that = (DisplayCartItem) o;
         return quantity == that.quantity && product.equals(that.product);
     }
 

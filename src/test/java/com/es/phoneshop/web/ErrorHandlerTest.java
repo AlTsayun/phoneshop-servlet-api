@@ -12,6 +12,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -31,7 +32,7 @@ public class ErrorHandlerTest {
     @Before
     public void setup(){
         errorHandler = new ErrorHandler();
-        when(request.getRequestDispatcher(errorHandler.productNotFoundPagePath)).thenReturn(requestDispatcher);
+        when(request.getRequestDispatcher(any())).thenReturn(requestDispatcher);
     }
 
     @Test
@@ -40,6 +41,16 @@ public class ErrorHandlerTest {
         errorHandler.productNotFound(request, response, productIdStr);
 
         verify(request).setAttribute(eq("productIdStr"), eq(productIdStr));
+        verify(response).setStatus(eq(404));
+        verify(requestDispatcher).forward(request, response);
+    }
+
+    @Test
+    public void testOrderNotFound() throws ServletException, IOException {
+        String orderIdStr = "blah";
+        errorHandler.orderNotFound(request, response, orderIdStr);
+
+        verify(request).setAttribute(eq("orderIdStr"), eq(orderIdStr));
         verify(response).setStatus(eq(404));
         verify(requestDispatcher).forward(request, response);
     }

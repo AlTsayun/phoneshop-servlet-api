@@ -2,7 +2,7 @@ package com.es.phoneshop.web;
 
 import com.es.phoneshop.domain.cart.model.Cart;
 import com.es.phoneshop.domain.cart.model.CartItem;
-import com.es.phoneshop.domain.cart.model.ProductInCart;
+import com.es.phoneshop.domain.cart.model.DisplayCartItem;
 import com.es.phoneshop.domain.cart.service.CartService;
 import com.es.phoneshop.domain.cart.service.ProductQuantityTooLowException;
 import com.es.phoneshop.domain.cart.service.ProductStockNotEnoughException;
@@ -72,7 +72,7 @@ public class CartPageServletTest extends TestCase {
     private final String requestContextPath = "requestContextPath";
 
     @Captor
-    private ArgumentCaptor<List<ProductInCart>> productInCartArgumentCaptor;
+    private ArgumentCaptor<List<DisplayCartItem>> productInCartArgumentCaptor;
 
     @Before
     public void setup() throws ServletException {
@@ -98,7 +98,6 @@ public class CartPageServletTest extends TestCase {
     private Cart setupCart() {
         return new Cart(List.of(new CartItem(0L, 10)));
     }
-
 
     private HttpSession setupSession() {
         return mock(HttpSession.class);
@@ -131,7 +130,7 @@ public class CartPageServletTest extends TestCase {
 
     private CartService setupCartService(HttpSession session, Cart cart) {
         CartService cartService = mock(CartService.class);
-        when(cartService.getCart(session)).thenReturn(cart);
+        when(cartService.get(session)).thenReturn(cart);
         return cartService;
     }
 
@@ -157,7 +156,7 @@ public class CartPageServletTest extends TestCase {
         servlet.doPost(request, response);
 
         for (int i = 0; i < productIds.length; i++) {
-            verify(cartService).update(eq(session), eq(productIds[i]), eq(quantities[i]));
+            verify(cartService).updateCartItem(eq(session), eq(productIds[i]), eq(quantities[i]));
         }
         verify(messagesHandler, times(productIds.length)).add(any(), any(), eq(SUCCESS), any());
         verify(response).sendRedirect(eq(requestContextPath + "/cart"));
@@ -170,6 +169,38 @@ public class CartPageServletTest extends TestCase {
         int[] quantities = new int[]{1, 2};
 
         when(request.getLocale()).thenReturn(Locale.ENGLISH);
+
+        when(request.getParameterValues("productId")).thenReturn(productIds);
+        when(request.getParameterValues("quantity")).thenReturn(Arrays.stream(quantities)
+                .mapToObj(Integer::toString)
+                .toArray(String[]::new));
+
+        servlet.doPost(request, response);
+
+        verify(messagesHandler, times(1)).add(any(), any(), eq(ERROR), any());
+        verify(response).sendRedirect(eq(requestContextPath + "/cart"));
+    }
+
+    @Test
+    public void testDoPostNoProductIds() throws IOException {
+        String[] productIds = new String[]{};
+        int[] quantities = new int[]{1, 2};
+
+        when(request.getParameterValues("productId")).thenReturn(productIds);
+        when(request.getParameterValues("quantity")).thenReturn(Arrays.stream(quantities)
+                .mapToObj(Integer::toString)
+                .toArray(String[]::new));
+
+        servlet.doPost(request, response);
+
+        verify(messagesHandler, times(1)).add(any(), any(), eq(ERROR), any());
+        verify(response).sendRedirect(eq(requestContextPath + "/cart"));
+    }
+
+    @Test
+    public void testDoPostNoQuantities() throws IOException {
+        String[] productIds = new String[]{"0"};
+        int[] quantities = new int[]{};
 
         when(request.getParameterValues("productId")).thenReturn(productIds);
         when(request.getParameterValues("quantity")).thenReturn(Arrays.stream(quantities)
@@ -196,7 +227,7 @@ public class CartPageServletTest extends TestCase {
                 .mapToObj(Integer::toString)
                 .toArray(String[]::new));
 
-        doThrow(new ProductNotFoundException(((Long) 100L).toString())).when(cartService).update(any(), eq(100L),
+        doThrow(new ProductNotFoundException(((Long) 100L).toString())).when(cartService).updateCartItem(any(), eq(100L),
                 anyInt());
 
         servlet.doPost(request, response);
@@ -219,7 +250,7 @@ public class CartPageServletTest extends TestCase {
                 .mapToObj(Integer::toString)
                 .toArray(String[]::new));
 
-        doThrow(new ProductStockNotEnoughException()).when(cartService).update(
+        doThrow(new ProductStockNotEnoughException()).when(cartService).updateCartItem(
                 any(),
                 eq(1L),
                 gt(10));
@@ -261,7 +292,7 @@ public class CartPageServletTest extends TestCase {
         when(request.getParameterValues("quantity")).thenReturn(quantities);
 
 
-        doThrow(new ProductQuantityTooLowException(-1)).when(cartService).update(
+        doThrow(new ProductQuantityTooLowException(-1)).when(cartService).updateCartItem(
                 any(),
                 any(),
                 lt(1));
@@ -275,14 +306,14 @@ public class CartPageServletTest extends TestCase {
     @Test
     public void testDoGet() throws IOException, ServletException {
 
-        List<ProductInCart> expectedProducts = testCart.getItems().stream()
-                .map(it -> new ProductInCart(testProducts.get(0), it.getQuantity()))
+        List<DisplayCartItem> expectedProducts = testCart.getItems().stream()
+                .map(it -> new DisplayCartItem(testProducts.get(0), it.getQuantity()))
                 .collect(Collectors.toList());
 
         servlet.doGet(request, response);
 
         verify(request).setAttribute(eq("productsInCart"), productInCartArgumentCaptor.capture());
-        List<ProductInCart> capturedProductsInCart = productInCartArgumentCaptor.getValue();
+        List<DisplayCartItem> capturedProductsInCart = productInCartArgumentCaptor.getValue();
         assertEquals(expectedProducts.size(), capturedProductsInCart.size());
         capturedProductsInCart.forEach(it -> assertTrue(expectedProducts.contains(it)));
         verify(requestDispatcher).forward(request, response);
@@ -295,14 +326,14 @@ public class CartPageServletTest extends TestCase {
         List<CartItem> illegalCartItems = new ArrayList<>();
         illegalCartItems.add(new CartItem(100L, 1));
         Cart illegalCart = new Cart(illegalCartItems);
-        when(cartService.getCart(session)).thenReturn(illegalCart);
+        when(cartService.get(session)).thenReturn(illegalCart);
 
         servlet.doGet(request, response);
 
         verify(messagesHandler, times(1)).add(any(), any(), eq(ERROR), any());
 
         verify(request).setAttribute(eq("productsInCart"), productInCartArgumentCaptor.capture());
-        List<ProductInCart> capturedProductsInCart = productInCartArgumentCaptor.getValue();
+        List<DisplayCartItem> capturedProductsInCart = productInCartArgumentCaptor.getValue();
         assertEquals(illegalCartItems.size() - 1, capturedProductsInCart.size());
         verify(requestDispatcher).forward(request, response);
 

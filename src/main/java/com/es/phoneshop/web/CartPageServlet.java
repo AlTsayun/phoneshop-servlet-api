@@ -1,6 +1,6 @@
 package com.es.phoneshop.web;
 
-import com.es.phoneshop.domain.cart.model.ProductInCart;
+import com.es.phoneshop.domain.cart.model.DisplayCartItem;
 import com.es.phoneshop.domain.cart.service.CartService;
 import com.es.phoneshop.domain.cart.service.ProductQuantityTooLowException;
 import com.es.phoneshop.domain.cart.service.ProductStockNotEnoughException;
@@ -41,35 +41,43 @@ public class CartPageServlet extends HttpServlet {
         String[] productIdStrings = request.getParameterValues("productId");
         String[] quantityStrings = request.getParameterValues("quantity");
 
-        try {
-            for (int i = 0; i < productIdStrings.length; i++) {
+        if (productIdStrings != null && quantityStrings != null && productIdStrings.length == quantityStrings.length) {
+            try {
+                for (int i = 0; i < productIdStrings.length; i++) {
 
-                int quantity;
-                quantity = Math.toIntExact(
-                        NumberFormat.getInstance(request.getLocale()).parse(quantityStrings[i]).longValue());
+                    int quantity;
+                    quantity = Math.toIntExact(
+                            NumberFormat.getInstance(request.getLocale()).parse(quantityStrings[i]).longValue());
 
-                Long productId;
-                try {
-                    productId = Long.valueOf(productIdStrings[i]);
-                } catch (NumberFormatException e) {
-                    throw new ProductNotFoundException(productIdStrings[i]);
+                    Long productId;
+                    try {
+                        productId = Long.valueOf(productIdStrings[i]);
+                    } catch (NumberFormatException e) {
+                        throw new ProductNotFoundException(productIdStrings[i]);
+                    }
+
+                    cartService.updateCartItem(request.getSession(), productId, quantity);
+                    messagesHandler.add(request,
+                            response,
+                            SUCCESS,
+                            "Product " + (i + 1) + " is successfully updated in your cart.");
                 }
 
-                cartService.update(request.getSession(), productId, quantity);
-                messagesHandler.add(request,
-                        response,
-                        SUCCESS,
-                        "Product " + (i + 1) + " is successfully updated in your cart.");
+            } catch (ParseException | ArithmeticException e) {
+                messagesHandler.add(request, response, ERROR, "Entered quantity is not a valid number.");
+            } catch (NumberFormatException | ProductNotFoundException e) {
+                messagesHandler.add(request, response, ERROR, "Product is not found.");
+            } catch (ProductStockNotEnoughException e) {
+                messagesHandler.add(request, response, ERROR, "Product stock is not enough.");
+            } catch (ProductQuantityTooLowException e) {
+                messagesHandler.add(request, response, ERROR, "Quantity " + e.getQuantity() + " is too low.");
             }
-
-        } catch (ParseException | ArithmeticException e) {
-            messagesHandler.add(request, response, ERROR, "Entered quantity is not a valid number.");
-        } catch (NumberFormatException | ProductNotFoundException e) {
-            messagesHandler.add(request, response, ERROR, "Product is not found.");
-        } catch (ProductStockNotEnoughException e) {
-            messagesHandler.add(request, response, ERROR, "Product stock is not enough.");
-        } catch (ProductQuantityTooLowException e) {
-            messagesHandler.add(request, response, ERROR, "Quantity " + e.getQuantity() + " is too low.");
+        } else {
+            messagesHandler.add(
+                    request,
+                    response,
+                    ERROR,
+                    "Products' ids and(or) quantities are not properly entered.");
         }
 
         response.sendRedirect(request.getContextPath() + "/cart");
@@ -77,15 +85,15 @@ public class CartPageServlet extends HttpServlet {
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        List<ProductInCart> productsInCart = cartService.getCart(request.getSession()).getItems().stream()
+        List<DisplayCartItem> productsInCart = cartService.get(request.getSession()).getItems().stream()
                 .filter(it -> isPresentInDao(it.getProductId(), id ->
-                    messagesHandler.add(
-                            request,
-                            response,
-                            ERROR,
-                            "Item wih id " + it.getProductId() + "is not present in catalog and hence deleted from cart.")
+                        messagesHandler.add(
+                                request,
+                                response,
+                                ERROR,
+                                "Item wih id " + it.getProductId() + "is not present in catalog and hence deleted from cart.")
                 ))
-                .map(it -> new ProductInCart(productDao.getById(it.getProductId()).get(), it.getQuantity()))
+                .map(it -> new DisplayCartItem(productDao.getById(it.getProductId()).get(), it.getQuantity()))
                 .collect(Collectors.toList());
         request.setAttribute("productsInCart", productsInCart);
         response.setHeader("Cache-Control", "private, no-store, no-cache, must-revalidate");
@@ -93,7 +101,7 @@ public class CartPageServlet extends HttpServlet {
 
     }
 
-    private boolean isPresentInDao(Long productId, Consumer<Long> negativeAction){
+    private boolean isPresentInDao(Long productId, Consumer<Long> negativeAction) {
         if (productDao.getById(productId).isPresent()) {
             return true;
         } else {

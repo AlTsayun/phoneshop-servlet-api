@@ -1,7 +1,5 @@
 package com.es.phoneshop.web;
 
-import com.es.phoneshop.domain.product.model.Product;
-import junit.framework.TestCase;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -13,7 +11,6 @@ import org.mockito.junit.MockitoJUnitRunner;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -32,7 +29,6 @@ public class MessagesHandlerTest{
 
     private List<String> successMessages;
 
-    private List<String> errorMessages;
 
     private HttpSession session;
 
@@ -42,15 +38,7 @@ public class MessagesHandlerTest{
     @Before
     public void setup(){
         successMessages = setupSuccessMessages();
-        errorMessages = setupErrorMessages();
         messagesHandler = new MessagesHandler();
-    }
-
-    private List<String> setupErrorMessages() {
-        List<String> successMessages = new ArrayList<>();
-        successMessages.add("success 1");
-        successMessages.add("success 2");
-        return successMessages;
     }
 
     private List<String> setupSuccessMessages() {
@@ -67,26 +55,22 @@ public class MessagesHandlerTest{
         return request;
     }
 
-    private HttpSession setupSession(List<String> successMessages, List<String> errorMessages){
+    private HttpSession setupSession(List<String> successMessages) {
         HttpSession session = mock(HttpSession.class);
         List<String> successMessagesCopy = new ArrayList<>(successMessages);
-        List<String> errorMessagesCopy = new ArrayList<>(errorMessages);
         when(session.getAttribute(MessagesHandler.SUCCESS_MESSAGES_SESSION_ATTRIBUTE)).thenReturn(successMessagesCopy);
-        when(session.getAttribute(MessagesHandler.ERROR_MESSAGES_SESSION_ATTRIBUTE)).thenReturn(errorMessagesCopy);
         return session;
     }
 
     private HttpSession setupEmptySession(){
         HttpSession session = mock(HttpSession.class);
-        when(session.getAttribute(MessagesHandler.SUCCESS_MESSAGES_SESSION_ATTRIBUTE)).thenReturn(null);
-        when(session.getAttribute(MessagesHandler.ERROR_MESSAGES_SESSION_ATTRIBUTE)).thenReturn(null);
         return session;
     }
 
     @Test
     public void testAdd() {
 
-        session = setupSession(successMessages, errorMessages);
+        session = setupSession(successMessages);
         request = setupRequest(session);
 
         String successMessage = "new success message";

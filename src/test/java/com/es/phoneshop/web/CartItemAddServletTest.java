@@ -106,7 +106,7 @@ public class CartItemAddServletTest extends TestCase{
         int quantity = -1;
         Long productId = 0L;
 
-        doThrow(new ProductQuantityTooLowException(quantity)).when(cartService).add(session, productId, quantity);
+        doThrow(new ProductQuantityTooLowException(quantity)).when(cartService).addCartItem(session, productId, quantity);
         when(request.getParameter("productId")).thenReturn(String.valueOf(productId));
         when(request.getParameter("quantity")).thenReturn(String.valueOf(quantity));
         when(request.getLocale()).thenReturn(Locale.ENGLISH);
@@ -114,7 +114,7 @@ public class CartItemAddServletTest extends TestCase{
 
         servlet.doPost(request, response);
 
-        verify(cartService).add(any(), eq(productId), eq(quantity));
+        verify(cartService).addCartItem(any(), eq(productId), eq(quantity));
         verify(messagesHandler).add(any(), any(), eq(MessagesHandler.MessageType.ERROR), any());
         verify(response).sendRedirect(eq(referer));
     }
@@ -123,7 +123,7 @@ public class CartItemAddServletTest extends TestCase{
         int quantity = 1;
         Long productId = 1000L;
 
-        doThrow(new ProductNotFoundException(productId.toString())).when(cartService).add(session, productId, quantity);
+        doThrow(new ProductNotFoundException(productId.toString())).when(cartService).addCartItem(session, productId, quantity);
         when(request.getParameter("productId")).thenReturn(String.valueOf(productId));
         when(request.getParameter("quantity")).thenReturn(String.valueOf(quantity));
         when(request.getLocale()).thenReturn(Locale.ENGLISH);
@@ -131,7 +131,7 @@ public class CartItemAddServletTest extends TestCase{
 
         servlet.doPost(request, response);
 
-        verify(cartService).add(any(), eq(productId), eq(quantity));
+        verify(cartService).addCartItem(any(), eq(productId), eq(quantity));
         verify(messagesHandler).add(any(), any(), eq(MessagesHandler.MessageType.ERROR), any());
         verify(response).sendRedirect(eq(referer));
     }
@@ -141,7 +141,7 @@ public class CartItemAddServletTest extends TestCase{
         int quantity = 1000;
         Long productId = 0L;
 
-        doThrow(new ProductStockNotEnoughException()).when(cartService).add(session, productId, quantity);
+        doThrow(new ProductStockNotEnoughException()).when(cartService).addCartItem(session, productId, quantity);
         when(request.getParameter("productId")).thenReturn(String.valueOf(productId));
         when(request.getParameter("quantity")).thenReturn(String.valueOf(quantity));
         when(request.getLocale()).thenReturn(Locale.ENGLISH);
@@ -149,7 +149,7 @@ public class CartItemAddServletTest extends TestCase{
 
         servlet.doPost(request, response);
 
-        verify(cartService).add(any(), eq(productId), eq(quantity));
+        verify(cartService).addCartItem(any(), eq(productId), eq(quantity));
         verify(messagesHandler).add(any(), any(), eq(MessagesHandler.MessageType.ERROR), any());
         verify(response).sendRedirect(eq(referer));
     }
@@ -166,7 +166,7 @@ public class CartItemAddServletTest extends TestCase{
 
         servlet.doPost(request, response);
 
-        verify(cartService).add(any(), eq(productId), eq(quantity));
+        verify(cartService).addCartItem(any(), eq(productId), eq(quantity));
         verify(messagesHandler).add(any(), any(), eq(MessagesHandler.MessageType.SUCCESS), any());
         verify(response).sendRedirect(eq(referer));
     }

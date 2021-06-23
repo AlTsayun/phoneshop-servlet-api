@@ -2,7 +2,6 @@ package com.es.phoneshop.web;
 
 import com.es.phoneshop.domain.cart.model.MiniCart;
 import com.es.phoneshop.domain.cart.service.CartService;
-import com.es.phoneshop.domain.product.persistence.ProductDao;
 import com.es.phoneshop.infra.config.Configuration;
 
 import javax.servlet.ServletException;
@@ -15,14 +14,8 @@ public class MiniCartServlet extends HttpServlet {
 
     private final CartService cartService;
 
-    private final ProductDao productDao;
-
-    private final MessagesHandler messagesHandler;
-
-    public MiniCartServlet(Configuration configuration, MessagesHandler messagesHandler) {
+    public MiniCartServlet(Configuration configuration) {
         this.cartService = configuration.getCartService();
-        this.productDao = configuration.getProductDao();
-        this.messagesHandler = messagesHandler;
     }
 
     @Override
@@ -34,5 +27,10 @@ public class MiniCartServlet extends HttpServlet {
         request.setAttribute("totalCartPriceCurrency", miniCart.getCurrency());
 
         request.getRequestDispatcher("/WEB-INF/pages/miniCart.jsp").include(request, response);
+    }
+
+    @Override
+    protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        doGet(req, resp);
     }
 }
