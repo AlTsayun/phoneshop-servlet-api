@@ -24,7 +24,6 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.Currency;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
@@ -165,20 +164,9 @@ public class CheckoutPageServlet extends HttpServlet {
         return word != null && word.matches("[A-Za-z]+");
     }
 
-    private void redirectError(HttpServletRequest request, HttpServletResponse response, String errorMessage) throws IOException {
+    private void redirectError(HttpServletRequest request, HttpServletResponse response, String errorMessage) throws IOException, ServletException {
         messagesHandler.add(request, response, ERROR, errorMessage);
-        response.sendRedirect(request.getContextPath() + "/checkout" + formParametersLine(request.getParameterMap()));
-    }
-
-    private String formParametersLine(Map<String, String[]> parametersMap) {
-        StringBuilder result = new StringBuilder("?");
-        for (String parameterKey : parametersMap.keySet()) {
-            for (String parameterValue : parametersMap.get(parameterKey)) {
-                result.append(parameterKey).append("=").append(parameterValue).append("&");
-            }
-        }
-        result.setLength(result.length() - 1);
-        return result.toString();
+        doGet(request, response);
     }
 
     private boolean isPresentInDao(Long productId, Consumer<Long> negativeAction) {

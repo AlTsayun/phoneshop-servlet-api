@@ -62,34 +62,25 @@ public class ArrayListOrderDao implements OrderDao {
     private void update(Order product) {
         lock.writeLock().lock();
         try {
-            if (product.getId() != null) {
-                int insertingPosition = IntStream.range(0, items.size())
-                        .filter(i -> product.getId().equals(items.get(i).getId()))
-                        .findFirst().orElseThrow(OrderPersistenceException::new);
+            int insertingPosition = IntStream.range(0, items.size())
+                    .filter(i -> product.getId().equals(items.get(i).getId()))
+                    .findFirst().orElseThrow(OrderPersistenceException::new);
 
-                items.set(insertingPosition, product);
-            } else {
-                throw new OrderPersistenceException();
-            }
-
+            items.set(insertingPosition, product);
         } finally {
             lock.writeLock().unlock();
         }
     }
 
     private Long create(Order order) {
-        if (order.getId() == null) {
-            Long productId = idGenerator.getId();
-            order.setId(productId);
-            lock.writeLock().lock();
-            try {
-                items.add(order);
-            } finally {
-                lock.writeLock().unlock();
-            }
-            return productId;
-        } else {
-            throw new OrderPersistenceException();
+        Long productId = idGenerator.getId();
+        order.setId(productId);
+        lock.writeLock().lock();
+        try {
+            items.add(order);
+        } finally {
+            lock.writeLock().unlock();
         }
+        return productId;
     }
 }
