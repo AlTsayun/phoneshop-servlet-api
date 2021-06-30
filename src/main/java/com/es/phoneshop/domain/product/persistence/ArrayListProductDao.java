@@ -1,10 +1,7 @@
 package com.es.phoneshop.domain.product.persistence;
 
 import com.es.phoneshop.domain.common.model.SortingOrder;
-import com.es.phoneshop.domain.product.model.Product;
-import com.es.phoneshop.domain.product.model.ProductPrice;
-import com.es.phoneshop.domain.product.model.ProductSortingCriteria;
-import com.es.phoneshop.domain.product.model.ProductsRequest;
+import com.es.phoneshop.domain.product.model.*;
 import com.es.phoneshop.utils.LongIdGenerator;
 
 import java.math.BigDecimal;
@@ -93,17 +90,55 @@ public class ArrayListProductDao implements ProductDao {
         }
     }
 
+    @Override
+    public List<Product> getAllByAdvancedSearchRequest(AdvancedSearchRequest request) {
+        lock.readLock().lock();
+        try {
+            return this.products.stream()
+                    .filter(it -> productMatches(it, request))
+                    .collect(Collectors.toList());
+        } finally {
+            lock.readLock().unlock();
+        }
+    }
+
     private int getWordMatchesCount(String word, List<String> wordsToMatch) {
         return (int) wordsToMatch.stream().filter(it -> it.equalsIgnoreCase(word)).count();
     }
 
     private boolean productMatches(Product product, ProductsRequest request) {
-        List<String> queryWords = getWords(request.getQuery());
         return product.getStock() >= request.getMinStockInclusive() &&
                 product.getActualPrice().getValue() != null &&
-                getWords(product.getDescription()).stream()
-                        .anyMatch(word -> queryWords.isEmpty() || queryWords.stream()
-                                .anyMatch(queryWord -> queryWord.equalsIgnoreCase(word)));
+                productMatchesQuery(product, request.getQuery(), QueryType.ANY_WORD);
+    }
+
+    private boolean productMatches(Product product, AdvancedSearchRequest request) {
+        BigDecimal productPrice = product.getActualPrice().getValue();
+        BigDecimal minPrice = request.getMinPrice();
+        BigDecimal maxPrice = request.getMaxPrice();
+        boolean priceMatches = productPrice != null &&
+                (minPrice == null || productPrice.compareTo(minPrice) > 0) &&
+                (maxPrice == null || productPrice.compareTo(maxPrice) < 0);
+
+        return product.getStock() >= 0 &&
+                priceMatches &&
+                productMatchesQuery(product, request.getQuery(), request.getQueryType());
+    }
+
+    private boolean productMatchesQuery(Product product, String query, QueryType queryType) {
+        if (query.isEmpty()) {
+            return true;
+        }
+        if (queryType == QueryType.ALL_WORDS) {
+            return query.equalsIgnoreCase(product.getDescription());
+        }
+        if (queryType == QueryType.ANY_WORD) {
+            List<String> queryWords = getWords(query);
+            return getWords(product.getDescription()).stream()
+                    .anyMatch(word -> queryWords.isEmpty() || queryWords.stream()
+                            .anyMatch(queryWord -> queryWord.equalsIgnoreCase(word)));
+        }
+        return false;
     }
 
     private List<String> getWords(String str) {

@@ -9,6 +9,7 @@
         <input name="searchQuery" value="${param.searchQuery}"/>
         <button type="submit">Search</button>
     </form>
+    <a href="${pageContext.servletContext.contextPath}/advanced-search">Advanced search</a>
     <table>
         <thead>
         <tr>

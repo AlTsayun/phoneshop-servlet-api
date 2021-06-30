@@ -72,6 +72,12 @@ public class ServletInitServletContextListener implements ServletContextListener
                     "/order/overview/*",
                     new OrderOverviewPageServlet(configuration, errorHandler));
 
+            registerServlet(
+                    servletContext,
+                    "advancedSearch",
+                    "/advanced-search",
+                    new AdvancedSearchPageServlet(configuration, messagesHandler));
+
             FilterRegistration.Dynamic dosProtection = servletContext.addFilter("dosProtection", new DosProtectionFilter(configuration));
             dosProtection.addMappingForUrlPatterns(EnumSet.of(DispatcherType.REQUEST), false, "/*");
         }
