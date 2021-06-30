@@ -1,10 +1,7 @@
 package com.es.phoneshop.domain.product.persistence;
 
 import com.es.phoneshop.domain.common.model.SortingOrder;
-import com.es.phoneshop.domain.product.model.Product;
-import com.es.phoneshop.domain.product.model.ProductPrice;
-import com.es.phoneshop.domain.product.model.ProductSortingCriteria;
-import com.es.phoneshop.domain.product.model.ProductsRequest;
+import com.es.phoneshop.domain.product.model.*;
 import com.es.phoneshop.utils.LongIdGeneratorImpl;
 import org.junit.Before;
 import org.junit.Test;
@@ -83,6 +80,29 @@ public class ArrayListProductDaoTest {
         assertEquals(2, products.size());
         assertEquals(products.get(0), initialProducts.get(0));
         assertEquals(products.get(1), initialProducts.get(2));
+
+    }
+
+    @Test
+    public void testGetAllByAdvancedSearchRequest() {
+        List<Product> products = productDao.getAllByAdvancedSearchRequest(new AdvancedSearchRequest("Samsung III", QueryType.ANY_WORD, null, null));
+        assertEquals(3, products.size());
+        assertTrue(products.contains(initialProducts.get(0)));
+        assertTrue(products.contains(initialProducts.get(1)));
+        assertTrue(products.contains(initialProducts.get(2)));
+
+        products = productDao.getAllByAdvancedSearchRequest(new AdvancedSearchRequest("Samsung Galaxy S", QueryType.ALL_WORDS, null, null));
+        assertEquals(1, products.size());
+        assertTrue(products.contains(initialProducts.get(0)));
+
+        products = productDao.getAllByAdvancedSearchRequest(new AdvancedSearchRequest("Samsung III", QueryType.ANY_WORD, new BigDecimal(150), null));
+        assertEquals(2, products.size());
+        assertTrue(products.contains(initialProducts.get(0)));
+        assertTrue(products.contains(initialProducts.get(2)));
+
+        products = productDao.getAllByAdvancedSearchRequest(new AdvancedSearchRequest("Samsung III", QueryType.ANY_WORD, new BigDecimal(150), new BigDecimal(250)));
+        assertEquals(1, products.size());
+        assertTrue(products.contains(initialProducts.get(0)));
 
     }
 
