@@ -8,17 +8,11 @@
 <%@ attribute name="warningMessagesKey" required="false"%>
 <%@ attribute name="successMessagesKey" required="false"%>
 
-<%--<c:forEach var="entry" items="${sessionScope.entrySet()}">--%>
-<%--    <div>--%>
-<%--            ${entry.key} = ${entry.value}--%>
-<%--    </div>--%>
-<%--</c:forEach>--%>
-
 <c:if test="${! empty errorMessagesKey}">
     <c:set var="messages" value="${sessionScope.get(errorMessagesKey)}"/>
     <c:if test="${messages != null}">
         <c:forEach var="message" items="${messages}">
-            <div>
+            <div style="color: red">
                     ${message}
             </div>
         </c:forEach>

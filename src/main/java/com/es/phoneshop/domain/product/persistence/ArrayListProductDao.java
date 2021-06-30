@@ -107,9 +107,12 @@ public class ArrayListProductDao implements ProductDao {
     }
 
     private boolean productMatches(Product product, ProductsRequest request) {
+        List<String> queryWords = getWords(request.getQuery());
         return product.getStock() >= request.getMinStockInclusive() &&
                 product.getActualPrice().getValue() != null &&
-                productMatchesQuery(product, request.getQuery(), QueryType.ANY_WORD);
+                getWords(product.getDescription()).stream()
+                        .anyMatch(word -> queryWords.isEmpty() || queryWords.stream()
+                                .anyMatch(queryWord -> queryWord.equalsIgnoreCase(word)));
     }
 
     private boolean productMatches(Product product, AdvancedSearchRequest request) {
