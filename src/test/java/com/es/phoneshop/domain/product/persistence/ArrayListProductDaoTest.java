@@ -104,6 +104,22 @@ public class ArrayListProductDaoTest {
         assertEquals(1, products.size());
         assertTrue(products.contains(initialProducts.get(0)));
 
+        products = productDao.getAllByAdvancedSearchRequest(new AdvancedSearchRequest("", QueryType.ANY_WORD, null, null));
+        assertEquals(13, products.size());
+        assertTrue(products.contains(initialProducts.get(0)));
+        assertTrue(products.contains(initialProducts.get(1)));
+        assertTrue(products.contains(initialProducts.get(2)));
+        assertTrue(products.contains(initialProducts.get(3)));
+        assertTrue(products.contains(initialProducts.get(4)));
+        assertTrue(products.contains(initialProducts.get(5)));
+        assertTrue(products.contains(initialProducts.get(6)));
+        assertTrue(products.contains(initialProducts.get(7)));
+        assertTrue(products.contains(initialProducts.get(8)));
+        assertTrue(products.contains(initialProducts.get(9)));
+        assertTrue(products.contains(initialProducts.get(10)));
+        assertTrue(products.contains(initialProducts.get(11)));
+        assertTrue(products.contains(initialProducts.get(12)));
+
     }
 
     @Test

@@ -133,7 +133,7 @@ public class ArrayListProductDao implements ProductDao {
             return true;
         }
         if (queryType == QueryType.ALL_WORDS) {
-            return query.equalsIgnoreCase(product.getDescription());
+            return query.trim().equalsIgnoreCase(product.getDescription());
         }
         if (queryType == QueryType.ANY_WORD) {
             List<String> queryWords = getWords(query);
