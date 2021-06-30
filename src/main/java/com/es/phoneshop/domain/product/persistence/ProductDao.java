@@ -1,5 +1,6 @@
 package com.es.phoneshop.domain.product.persistence;
 
+import com.es.phoneshop.domain.product.model.AdvancedSearchRequest;
 import com.es.phoneshop.domain.product.model.Product;
 import com.es.phoneshop.domain.product.model.ProductsRequest;
 
@@ -10,6 +11,8 @@ public interface ProductDao {
     Optional<Product> getById(Long id);
 
     List<Product> getAllByRequest(ProductsRequest productsRequest);
+
+    List<Product> getAllByAdvancedSearchRequest(AdvancedSearchRequest request);
 
     List<Product> getAll();
 
